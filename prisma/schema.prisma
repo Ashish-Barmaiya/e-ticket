@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// HOST BASIC INFO TABLE  ///
+model Hosts {
+  id                      String                   @id @default(uuid())
+  name                    String
+  email                   String                   @unique
+  phone                   String                   @unique
+  password                String
+  profileImage            String?
+  refreshToken            String?
+  accountStatus           String                   @default("pending")
+  lastLogin               DateTime?
+  verificationStatus      Boolean                  @default(false)
+  role                    String                   @default("Individual")
+  preferredLanguage       String?
+  timezone                String?
+  rating                  Float                    @default(0.0)
+  numberOfEventsHosted    Int                      @default(0)
+  supportContactInfo      String?
+  preferredCommunication  String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  businessInformation     BusinessInformation?
+  bankingInformation      BankingInformation?
+  venues                  VenueInformation[]
+  ticketCustomizations    TicketCustomization[]
+  hostAnalytics           HostAnalytics?
+  hostPromotions          HostPromotions?
+  notificationPreferences NotificationPreferences?
+  teamMembers             HostTeamManagement[]
+}
+
+/// HOST BUSINESS INFO TABLE ///
+model BusinessInformation {
+  id                   String    @id @default(uuid())
+  hostId               String    @unique
+  companyName          String
+  businessRegistration String
+  taxDetails           String
+  businessType         String
+  websiteUrl           String?
+  socialMediaLinks     Json?
+  businessDescription  String?
+  businessLogo         String?
+  kycStatus            Boolean   @default(false)
+  complianceExpiration DateTime?
+  Host                 Hosts     @relation(fields: [hostId], references: [id])
+}
+
+/// HOST BANKING INFO TABLE ///
+model BankingInformation {
+  id                     String  @id @default(uuid())
+  hostId                 String  @unique
+  bankAccountDetails     String
+  revenueAgreement       String
+  preferredPaymentMethod String
+  paymentFrequency       String
+  paymentThreshold       Float
+  taxFilingStatus        Boolean @default(false)
+  taxDocuments           Json?
+  Host                   Hosts   @relation(fields: [hostId], references: [id])
+}
+
+/// VENUE TABLE ///
+model VenueInformation {
+  id                   String                @id @default(uuid())
+  hostId               String
+  name                 String
+  address              String
+  seatingCapacity      Int
+  seatingCategories    Json
+  seatingLayout        Json
+  venueType            String
+  facilities           Json?
+  eventTypesSupported  Json?
+  venuePolicies        String?
+  venuePhotos          Json?
+  pricingInformation   Json?
+  availabilityCalendar Json?
+  venueAccessibility   Json?
+  venueSetupServices   Json?
+  Host                 Hosts                 @relation(fields: [hostId], references: [id])
+  TicketCustomization  TicketCustomization[]
+}
+
+/// TICKET CUSTOMIZATION TABLE ///
+model TicketCustomization {
+  id                String           @id @default(uuid())
+  hostId            String
+  venueId           String
+  ticketTemplate    Json
+  customTicketRules Json
+  ticketPriceTiers  Json
+  Host              Hosts            @relation(fields: [hostId], references: [id])
+  VenueInformation  VenueInformation @relation(fields: [venueId], references: [id])
+}
+
+/// HOST ANALYTICS TABLE ///
+model HostAnalytics {
+  id                    String @id @default(uuid())
+  hostId                String @unique
+  totalTicketsSold      Int    @default(0)
+  totalRevenueGenerated Float  @default(0.0)
+  attendanceRate        Float  @default(0.0)
+  refundRequests        Int    @default(0)
+  Host                  Hosts  @relation(fields: [hostId], references: [id])
+}
+
+/// HOST PROMOTION TABLE ///
+model HostPromotions {
+  id                     String @id @default(uuid())
+  hostId                 String @unique
+  discountCodes          Json?
+  referralProgramDetails Json?
+  adSpend                Float  @default(0.0)
+  Host                   Hosts  @relation(fields: [hostId], references: [id])
+}
+
+/// HOST NOTIFICATION PREFERENCE TABLE ///
+model NotificationPreferences {
+  id                 String  @id @default(uuid())
+  hostId             String  @unique
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(true)
+  alertPreferences   Json?
+  securityAlerts     Boolean @default(true)
+  Host               Hosts   @relation(fields: [hostId], references: [id])
+}
+
+/// HOST TEAM MANAGAMENT TABLE ///
+model HostTeamManagement {
+  id           String @id @default(uuid())
+  hostId       String
+  teamMemberId String
+  role         String
+  permissions  Json
+  Host         Hosts  @relation(fields: [hostId], references: [id])
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=hq, initial-scale=1.0">
+    <title>Host Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, <%= host.name %></h1>
+    <h4>This is your dashboard where you can manage your events.</h4>
+    <br>
+    <a href="/host/<%= host.id %>/dashboard/edit-profile">Edit Profile</a>
+    <hr>
+    <h3>Profile</h3>
+    <p>Name: <%= host.name %></p>
+    <p>Email: <%= host.email %></p>
+    <p>Phone: <%= host.phone %></p>
+    <p>Verification Status: <% if (!host.verificationStatus) { %>
+                                 Pending       
+                            <% } else { %>
+                                 Verified
+                            <%  } %></p> 
+    <p>Role: <%= host.role %></p>
+    <p>Total Events Hosted: <%= host.numberOfEventsHosted %></p>
+    <p>Rating: <%= host.rating %></p>
+    <p>Customer Support: <%= host.supportContactInfo %></p>
+    <br>
+    <hr>
+    <a href="/host/<%= host.id %>/dashboard/list-new-events">List an event</a>
+    <hr>
+    <a href="/host/<%= host.id %>/dashboard/reschedule-events">Reschedule event</a>
+    <hr>
+    <a href="/host/<%= host.id %>/dashboard/cancel-events">Cancel event</a>
+    <hr>
+    <br>
+    <a href="/host/hostdashboard/hostlogout" role="button">Log Out</a>
+</html>
