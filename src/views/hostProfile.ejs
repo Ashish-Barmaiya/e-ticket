@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Profile</title>
+</head>
+<body>
+    <h2>Welcome to your profile <%= host.name %></h2>
+    <hr>
+    <h3>Business Information</h3>
+    <form action="/host//:hostId/dashboard/edit-profile" method="post">
+        <div>
+            <label for="companyName">Company Name: </label>
+            <input type="text" name="companyName" placeholder="Enter company name">
+        </div>
+        <div>
+            <label for="businessRegistration">Company Identification Number (CIN): </label>
+            <input type="text" name="businessRegistration" placeholder="Enter CIN">
+        </div>
+        <div>
+            <label for="taxDetails">Tax Deduction Account Number (TAN): </label>
+            <input type="text" name="taxDetails" placeholder="Enter TAN">
+        </div>
+        <div>
+            <label for="businessType">Business Type: </label>
+            <input type="text" name="businessType" placeholder="Enter business type">
+        </div>
+        <div>
+            <label for="businessDescription">Business Description: </label>
+            <input type="text" name="businessDescription" placeholder="Describe your business">
+        </div>
+        <div>
+            <label for="websiteUrl">Website: </label>
+            <input type="url" name="websiteUrl" placeholder="Enter your website link">
+        </div>
+        <div>
+            <label for="socialMediaLinks">Social Media: </label>
+            <input type="url" name="socialMediaLinks" placeholder="Enter your social media links">
+        </div>
+        <hr>
+        <h3>Banking Information</h3>
+        <div>
+            <label for=""></label>
+        </div>
+    </form>
+</body>
+</html>
