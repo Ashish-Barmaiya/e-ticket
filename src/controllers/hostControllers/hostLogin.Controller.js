@@ -6,36 +6,29 @@ import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
 
-// Configure the Passport Local Strategy for Host Authentication
+// PASSPORT LOCAL STRATEGY //
 passport.use(
-  "local",
+  "local-host",
   new LocalStrategy({ usernameField: "email" }, async function verify (email, password, done) {
     try {
 
-      console.log("Login attempt with email:", email);
-
-      // Find the host by email in the database
+      // Finding the host by email in the database
       const host = await prisma.hosts.findUnique({
-        where: { email: email },
+        where: { email },
       });
-      console.log("Database result for host:", host);
-
-      // If the host is not found, return an error
+      // If the host is not found, returning an error
       if (!host) {
-        console.log("No host found with email:", email);
         return done(null, false, { message: "Host not found" });
       }
-
-      // Validate the password
+      // Validating the password
       const isPasswordValid = await bcrypt.compare(password, host.password);
-      console.log("Password validation result:", isPasswordValid);
 
       if (!isPasswordValid) {
         return done(null, false, { message: "Incorrect Password" });
       }
-
-      // Authentication successful, return the host object
+      // Authentication successful, returning the host object
       return done(null, host);
+
     } catch (error) {
       console.error("Error during host authentication:", error);
       return done(error);
@@ -43,42 +36,44 @@ passport.use(
   })
 );
 
-// Passport Serialization and Deserialization for Session Handling
+// PASSPORT SERIALIZEUSER //
 passport.serializeUser((user, done) => {
-    console.log("Serializing User:", user);
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, cb) => {
-    console.log("Deserializing User with ID:", id);
-    try {
-        const host = await prisma.hosts.findUnique({
-            where: { id: id }
-        });
-        if (host) {
-            console.log("Deserialized User:", host);
-            return cb(null, host);
-        } else {
-            console.log("User not found during deserialization");
-            return cb(null, false);
-        }
-    } catch (error) {
-        console.log("Error during deserialization:", error);
-        return cb(error, false);
-    }
+// PASSPORT DESERIALIZEUSER //
+passport.deserializeUser(async (id, done) => {
+  try {
+       // For Host table
+      const host = await prisma.hosts.findUnique({ where: { id } });
+      if (host) {
+          return done(null, host);
+      }
+      // For User table
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (user) {
+          return done(null, user);
+      }
+      // If no match is found in either tables
+      return done(null, false);
+
+  } catch (error) {
+      return done(error, false);
+  }
 });
 
-// Login function handling the request and invoking the Local Strategy
+
+// LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginHost = (req, res, next) => {
-  // Validate the request using express-validator
+
+  // Validating the request using express-validator
   const validationErrors = validationResult(req);
 
   if (!validationErrors.isEmpty()) {
     return res.status(400).json({ errors: validationErrors.array() });
   }
-
-  // Use Passport's authenticate method with the local strategy
-  passport.authenticate("local", (err, user, info) => {
+  // Using Passport authenticate method with the local strategy
+  passport.authenticate("local-host", (err, user, info) => {
     console.log("Inside passport.authenticate callback");
 
     if (err) {
@@ -101,6 +96,6 @@ const loginHost = (req, res, next) => {
       res.redirect(`/host/${user.id}/dashboard`);
     });
   })(req, res, next);
-};
+}
 
-export { loginHost };
+export { loginHost }

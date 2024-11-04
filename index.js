@@ -14,5 +14,4 @@ db.connect()
 }))
 
 .then(() => console.log("Connected to postgres database"))
-
 .catch(err => console.error("Connector error:", err.stack));

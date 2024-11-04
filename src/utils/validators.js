@@ -41,15 +41,10 @@ const hostLoginValidator = [
 
 /// USER REGISTRATION VALIDATION ///
 const userRegisterValidator = [
-     check("firstName")
+     check("name")
           .trim()
-          .notEmpty().withMessage("First Name is required")
-          .isAlpha("en-US", { ignore: " " }).withMessage("First Name must contain only letters and spaces"),
-
-     check("lastName")
-           .trim()
-           .notEmpty().withMessage("First Name is required")
-           .isAlpha("en-US", { ignore: " " }).withMessage("First Name must contain only letters and spaces"),
+          .notEmpty().withMessage("Name is required")
+          .isAlpha("en-US", { ignore: " " }).withMessage("Name must contain only letters and spaces"),
 
      check("email")
            .trim()
@@ -82,9 +77,57 @@ const userLoginValidator = [
           .notEmpty().withMessage("Password is required")     
  ]
 
+/// USER UPDATE VALIDATION ///
+const userUpdateValidator = [
+     check("fullName")
+           .trim()
+           .isAlpha("en-US", { ignore: " " }).withMessage("Name must contain only letters and spaces"),
+     
+     check("dateOfBirth")
+           .optional({ checkFalsy: true })
+           .toDate(),
+           
+     check("gender")
+           .optional({ checkFalsy: true })
+           .trim()
+           .toLowerCase()
+           .isIn(["male", "female", "other"]).withMessage("Gender must be either male , female, or other "),
+
+     check("areaPincode")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isNumeric(),
+
+     check("addressLine1")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isLength({ max: 255 }).withMessage("Characters limit exceeded"),
+
+     check("addressLine2")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isLength({ max: 255 }).withMessage("Characters limit exceeded"),
+     
+     check("landmark")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isLength({ max: 100 }),
+
+     check("state")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isAlpha("en-US", { ignore: " " }).withMessage("State must only be in letters"),
+     
+     check("country")
+           .optional({ checkFalsy: true })
+           .trim()
+           .isAlpha("en-US", { ignore: " " })
+]
+
 export { 
      hostRegisterValidator,
      hostLoginValidator,
      userRegisterValidator,
-     userLoginValidator
+     userLoginValidator,
+     userUpdateValidator
  }

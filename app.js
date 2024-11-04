@@ -1,6 +1,6 @@
 import express from "express";
 import env from "dotenv";
-// import cors from "cors";
+import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import path from "path";
@@ -10,13 +10,13 @@ env.config();
 
 const app = express(); // Ensure this is defined before using it (I defined it after importing routes which was triggering errors)
 
-// app.use(cors({
-//     origin: process.env.CORS_ORIGIN,
-//     credentials: true
-// }));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended : true }));
-// app.use(express.static("public"));
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended : true }));
+app.use(express.static("public"));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename); 
@@ -41,6 +41,8 @@ import listNewEvent_Router from "./src/routes/hostRoutes/listNewEvent.Router.js"
 import rescheduleEvent_Router from "./src/routes/hostRoutes/rescheduleEvent.Router.js";
 import cancelEvent_Router from "./src/routes/hostRoutes/cancelEvent.Router.js";
 
+/* User Route */
+import userRouter from "./src/routes/user.Router.js";
 
 ///// SETTING UP EXPRESS-SESSION /////
 app.use(session({
@@ -69,5 +71,7 @@ app.use("/host", hostProfile_Router);
 app.use("/host", listNewEvent_Router);
 app.use("/host", rescheduleEvent_Router);
 app.use("/host", cancelEvent_Router);
+
+app.use("/user", userRouter);
 
 export { app };
