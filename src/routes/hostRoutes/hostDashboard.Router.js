@@ -7,7 +7,6 @@ const router = express.Router();
 router.get("/:hostId/dashboard", hostLoginAuth, (req, res) => {
     
     if (req.user.id === req.params.hostId) {
-
         res.status(200).render("hostDashboard", {
             host: req.user
         });

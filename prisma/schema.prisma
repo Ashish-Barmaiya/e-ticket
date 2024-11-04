@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// HOST BASIC INFO TABLE  ///
+/// HOST BASIC INFO MODEL  ///
 model Hosts {
   id                      String                   @id @default(uuid())
   name                    String
@@ -38,7 +38,7 @@ model Hosts {
   teamMembers             HostTeamManagement[]
 }
 
-/// HOST BUSINESS INFO TABLE ///
+/// HOST BUSINESS INFO MODEL ///
 model BusinessInformation {
   id                   String    @id @default(uuid())
   hostId               String    @unique
@@ -55,7 +55,7 @@ model BusinessInformation {
   Host                 Hosts     @relation(fields: [hostId], references: [id])
 }
 
-/// HOST BANKING INFO TABLE ///
+/// HOST BANKING INFO MODEL ///
 model BankingInformation {
   id                     String  @id @default(uuid())
   hostId                 String  @unique
@@ -69,7 +69,7 @@ model BankingInformation {
   Host                   Hosts   @relation(fields: [hostId], references: [id])
 }
 
-/// VENUE TABLE ///
+/// VENUE MODEL ///
 model VenueInformation {
   id                   String                @id @default(uuid())
   hostId               String
@@ -91,7 +91,7 @@ model VenueInformation {
   TicketCustomization  TicketCustomization[]
 }
 
-/// TICKET CUSTOMIZATION TABLE ///
+/// TICKET CUSTOMIZATION MODEL ///
 model TicketCustomization {
   id                String           @id @default(uuid())
   hostId            String
@@ -103,7 +103,7 @@ model TicketCustomization {
   VenueInformation  VenueInformation @relation(fields: [venueId], references: [id])
 }
 
-/// HOST ANALYTICS TABLE ///
+/// HOST ANALYTICS MODEL ///
 model HostAnalytics {
   id                    String @id @default(uuid())
   hostId                String @unique
@@ -114,7 +114,7 @@ model HostAnalytics {
   Host                  Hosts  @relation(fields: [hostId], references: [id])
 }
 
-/// HOST PROMOTION TABLE ///
+/// HOST PROMOTION MODEL ///
 model HostPromotions {
   id                     String @id @default(uuid())
   hostId                 String @unique
@@ -124,7 +124,7 @@ model HostPromotions {
   Host                   Hosts  @relation(fields: [hostId], references: [id])
 }
 
-/// HOST NOTIFICATION PREFERENCE TABLE ///
+/// HOST NOTIFICATION PREFERENCE MODEL ///
 model NotificationPreferences {
   id                 String  @id @default(uuid())
   hostId             String  @unique
@@ -135,7 +135,7 @@ model NotificationPreferences {
   Host               Hosts   @relation(fields: [hostId], references: [id])
 }
 
-/// HOST TEAM MANAGAMENT TABLE ///
+/// HOST TEAM MANAGEMENT MODEL ///
 model HostTeamManagement {
   id           String @id @default(uuid())
   hostId       String
@@ -143,4 +143,45 @@ model HostTeamManagement {
   role         String
   permissions  Json
   Host         Hosts  @relation(fields: [hostId], references: [id])
+}
+
+// USER MODEL
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  fullName       String
+  phone          String        @unique
+  dateOfBirth    DateTime?
+  profilePicture String?
+  gender         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  addresses      UserAddress[]
+  tickets        Ticket[]
+}
+
+// USER ADDRESS MODEL
+model UserAddress {
+  id           Int    @id @default(autoincrement())
+  userId       String
+  areaPincode  Int
+  addressLine1 String
+  addressLine2 String
+  landmark     String
+  state        String
+  country      String
+  user         User   @relation(fields: [userId], references: [id])
+}
+
+// TICKET MODEL
+model Ticket {
+  id         String   @id @default(uuid())
+  userId     String
+  eventId    Int // Event model yet to be created
+  price      Float
+  seatNumber String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  // Add additional fields for ticket information as needed
 }

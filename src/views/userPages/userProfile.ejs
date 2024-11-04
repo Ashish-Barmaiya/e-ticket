@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+</head>
+<body>
+    <h1>Welcome <%= user.fullName %></h1>
+    <hr>
+    <br>
+    <p>Name: <%= user.fullName %></p>
+    <p>Email: <%= user.email %></p>
+    <a href="/user/<%= user.id %>/profile/edit-profile">Edit Profile</a>
+    <br>
+    <br>
+    <a href="/user/:userId/user-sign-out">Sign Out</a>
+</body>
+</html>

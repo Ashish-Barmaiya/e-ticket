@@ -1,18 +1,30 @@
+/// HOST LOGIN AUTH //
 const hostLoginAuth = (req, res, next) => {
-    console.log("Authenticating User...");
-    console.log("Session data: ", req.session);
-    console.log("User object: ", req.user);
-    
-    if (req.isAuthenticated()) {
+    // Checking if user is authenticated and is a host
+    if (req.isAuthenticated() && req.user && req.user.email) {
         return next();
     }
-    console.log("User not authenticated");
-    res.redirect("/host/hostlogin?error");
+    // If host is not authenticated
+    console.log("Host not authenticated");
+    res.redirect("/host/hostlogin?error=You need to log in as a host");
 };
 
-export { 
-    hostLoginAuth
+/// USER LOGIN AUTH ///
+const userLoginAuth = (req, res, next) => {
+    // Checking if user is authenticated and is a user
+    if (req.isAuthenticated() && req.user && req.user.email) {
+        return next();
+    }
+    // If user is not authenticated
+    console.log("User not authenticated");
+    res.redirect("/user/user-sign-in?error=You need to log in as a user");
 };
+
+export {
+    hostLoginAuth,
+    userLoginAuth,
+}
+
 
 
 
