@@ -7,13 +7,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 env.config();
-
-const app = express(); // Ensure this is defined before using it (I defined it after importing routes which was triggering errors)
+const app = express();
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended : true }));
 app.use(express.static("public"));
@@ -25,24 +25,9 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));
 
 ///// IMPORTING ROUTES /////
-/* Home Route */
-import homePage_Router from "./src/routes/homePage.Router.js"
-
-/* Host Routes */
-import host_Router from "./src/routes/hostRoutes/host.Router.js";
-
-import hostRegister_Router from "./src/routes/hostRoutes/hostRegister.Router.js";
-import hostLogin_Router from "./src/routes/hostRoutes/hostLogin.Router.js";
-
-import hostDashboard_Router from "./src/routes/hostRoutes/hostDashboard.Router.js";
-import hostProfile_Router from "./src/routes/hostRoutes/hostProfile.Router.js";
-
-import listNewEvent_Router from "./src/routes/hostRoutes/listNewEvent.Router.js";
-import rescheduleEvent_Router from "./src/routes/hostRoutes/rescheduleEvent.Router.js";
-import cancelEvent_Router from "./src/routes/hostRoutes/cancelEvent.Router.js";
-
-/* User Route */
-import userRouter from "./src/routes/user.Router.js";
+import homePageRouter from "./src/routes/homePage.Router.js"; // home page route
+import hostRouter from "./src/routes/host.Router.js"; // host routes
+import userRouter from "./src/routes/user.Router.js"; // user routes
 
 ///// SETTING UP EXPRESS-SESSION /////
 app.use(session({
@@ -60,18 +45,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 ///// USING ROUTES /////
-app.use("/", homePage_Router);
-app.use("/host", host_Router);
-
-app.use("/host/hostregister", hostRegister_Router);
-app.use("/host/hostlogin", hostLogin_Router);
-
-app.use("/host", hostDashboard_Router);
-app.use("/host", hostProfile_Router);
-app.use("/host", listNewEvent_Router);
-app.use("/host", rescheduleEvent_Router);
-app.use("/host", cancelEvent_Router);
-
+app.use("/", homePageRouter);
+app.use("/host", hostRouter);
 app.use("/user", userRouter);
+
+
+app.get("*", (req, res) => {
+    res.status(404).send("ERROR 404!! PAGE NOT FOUND");
+});
 
 export { app };

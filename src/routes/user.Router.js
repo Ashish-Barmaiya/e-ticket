@@ -7,7 +7,7 @@ import { userRegisterValidator,
 
 const router = express.Router();
 
-/// HOME PAGE GET ROUTE ///
+/// USER PAGE GET ROUTE ///
 router.get("/", (req, res) => {
     res.render("userPages/userPage")
 });

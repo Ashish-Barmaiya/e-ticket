@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Venues</title>
+</head>
+<body>
+    <h2>Your Venues</h2>
+    <hr>
+    <p><% if (venues === null) { %>
+        You have not added any venue yet. Click below to add a venue.
+    <% } else { %>
+        You have <% venues.length.rowss %> venues added. Click below to add more venues.       
+    <% } %></p>
+    <br>
+    <a href="/host/<%= host.id %>/dashboard/venue/add-venue">Add Venue</a>
+</body>
+</html>
