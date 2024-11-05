@@ -36,6 +36,7 @@ model Hosts {
   hostPromotions          HostPromotions?
   notificationPreferences NotificationPreferences?
   teamMembers             HostTeamManagement[]
+  events                  Event[]
 }
 
 /// HOST BUSINESS INFO MODEL ///
@@ -52,7 +53,7 @@ model BusinessInformation {
   businessLogo         String?
   kycStatus            Boolean   @default(false)
   complianceExpiration DateTime?
-  Host                 Hosts     @relation(fields: [hostId], references: [id])
+  host                 Hosts     @relation(fields: [hostId], references: [id])
 }
 
 /// HOST BANKING INFO MODEL ///
@@ -66,7 +67,7 @@ model BankingInformation {
   paymentThreshold       Float
   taxFilingStatus        Boolean @default(false)
   taxDocuments           Json?
-  Host                   Hosts   @relation(fields: [hostId], references: [id])
+  host                   Hosts   @relation(fields: [hostId], references: [id])
 }
 
 /// VENUE MODEL ///
@@ -76,8 +77,8 @@ model VenueInformation {
   name                 String
   address              String
   seatingCapacity      Int
-  seatingCategories    Json
-  seatingLayout        Json
+  seatingCategories    String
+  seatingLayout        String
   venueType            String
   facilities           Json?
   eventTypesSupported  Json?
@@ -87,8 +88,9 @@ model VenueInformation {
   availabilityCalendar Json?
   venueAccessibility   Json?
   venueSetupServices   Json?
-  Host                 Hosts                 @relation(fields: [hostId], references: [id])
-  TicketCustomization  TicketCustomization[]
+  host                 Hosts                 @relation(fields: [hostId], references: [id])
+  ticketCustomization  TicketCustomization[]
+  event                Event[]
 }
 
 /// TICKET CUSTOMIZATION MODEL ///
@@ -99,8 +101,8 @@ model TicketCustomization {
   ticketTemplate    Json
   customTicketRules Json
   ticketPriceTiers  Json
-  Host              Hosts            @relation(fields: [hostId], references: [id])
-  VenueInformation  VenueInformation @relation(fields: [venueId], references: [id])
+  host              Hosts            @relation(fields: [hostId], references: [id])
+  venueInformation  VenueInformation @relation(fields: [venueId], references: [id])
 }
 
 /// HOST ANALYTICS MODEL ///
@@ -111,7 +113,7 @@ model HostAnalytics {
   totalRevenueGenerated Float  @default(0.0)
   attendanceRate        Float  @default(0.0)
   refundRequests        Int    @default(0)
-  Host                  Hosts  @relation(fields: [hostId], references: [id])
+  host                  Hosts  @relation(fields: [hostId], references: [id])
 }
 
 /// HOST PROMOTION MODEL ///
@@ -121,7 +123,7 @@ model HostPromotions {
   discountCodes          Json?
   referralProgramDetails Json?
   adSpend                Float  @default(0.0)
-  Host                   Hosts  @relation(fields: [hostId], references: [id])
+  host                   Hosts  @relation(fields: [hostId], references: [id])
 }
 
 /// HOST NOTIFICATION PREFERENCE MODEL ///
@@ -132,7 +134,7 @@ model NotificationPreferences {
   smsNotifications   Boolean @default(true)
   alertPreferences   Json?
   securityAlerts     Boolean @default(true)
-  Host               Hosts   @relation(fields: [hostId], references: [id])
+  host               Hosts   @relation(fields: [hostId], references: [id])
 }
 
 /// HOST TEAM MANAGEMENT MODEL ///
@@ -142,7 +144,7 @@ model HostTeamManagement {
   teamMemberId String
   role         String
   permissions  Json
-  Host         Hosts  @relation(fields: [hostId], references: [id])
+  host         Hosts  @relation(fields: [hostId], references: [id])
 }
 
 // USER MODEL
@@ -155,6 +157,7 @@ model User {
   dateOfBirth    DateTime?
   profilePicture String?
   gender         String?
+  refreshToken   String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   addresses      UserAddress[]
@@ -176,12 +179,36 @@ model UserAddress {
 
 // TICKET MODEL
 model Ticket {
-  id         String   @id @default(uuid())
-  userId     String
-  eventId    Int // Event model yet to be created
-  price      Float
-  seatNumber String?
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  id           String   @id @default(uuid())
+  ticketNumber Int      @default(autoincrement())
+  userId       String
+  eventId      Int // References to Event table
+  price        Float
+  seatNumber   String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
   // Add additional fields for ticket information as needed
+  event        Event    @relation(fields: [eventId], references: [id])
+}
+
+/// EVENT MODEL ///
+model Event {
+  id               Int               @id @default(autoincrement())
+  title            String
+  description      String?
+  poster           String?
+  artist           String?
+  date             DateTime
+  startTime        DateTime
+  endTime          DateTime?
+  hostId           String // References the Hosts table
+  venueId          String // References the VenueInformation table
+  ticketsAvailable Int
+  price            Float // Ticket price per person
+  status           String            @default("Scheduled") // e.g., Scheduled, Canceled
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  host             Hosts             @relation(fields: [hostId], references: [id])
+  venueInformation VenueInformation? @relation(fields: [venueId], references: [id])
+  ticket           Ticket[] // Relation to tickets sold for this event
 }

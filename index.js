@@ -3,12 +3,12 @@ import { app } from "./app.js";
 import { db } from "./src/db/db.js";
 
 env.config();
-
-///// LISTENING ON THE PORT /////
 const port = process.env.PORT || 3000;
 
+/// CONNECTING TO DATABASE ///
 db.connect()
 
+/// LISTENING ON THE PORT AFTER CONNECTING TO DATABASE ///
 .then(app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 }))
