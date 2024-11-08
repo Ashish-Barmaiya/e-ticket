@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events</title>
+</head>
+<body>
+    <h2>Events</h2>
+    <hr>
+    <br>
+    <% if (!events || events.length === 0) { %>
+        <p>No events available at the moment.</p>
+    <% } else { %>
+        <% events.forEach(event => { %>
+            <h3><%= event.title %></h3>
+            <p><%= event.description %></p>
+            <p>Artist: <%= event.artist %></p>
+            <p>Venue: <%= event.venueInformation.name %></p>
+            <p>Date: <%= new Date(event.date).toDateString() %></p> <!-- Format date -->
+            <p>Start Time: <%= new Date(event.startTime).toLocaleTimeString() %></p> <!-- Format start time -->
+            <p>End Time: <%= event.endTime ? new Date(event.endTime).toLocaleTimeString() : "TBD" %></p> <!-- Format end time -->
+            <a href="/events/<%= event.id %>/details">Get Tickets</a>
+            <hr>
+        <% }) %>
+    <% } %>
+</body>
+</html>

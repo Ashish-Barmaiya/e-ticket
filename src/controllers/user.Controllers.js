@@ -145,7 +145,6 @@ const loginUser = (req, res, next) => {
     })(req, res, next)
 }
 
-
 /// UPDATE USER INFO ///
 const updateUserInfo = async (req, res) => {
     try {
@@ -214,9 +213,48 @@ const updateUserInfo = async (req, res) => {
     }
 };
 
+/// USER'S TICKETS ///
+const myTickets = async(req, res) => {
+
+    try {
+        // Get all tickets booked by user
+        const allTickets = await prisma.ticket.findMany({
+            where: { userId : req.user.id},
+            include: { 
+                event: {
+                    select: {
+                        title: true,
+                        date: true,
+                        startTime: true,
+                        artist: true,
+                        venueInformation: {
+                            select: {
+                                name: true,
+                                address: true
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!allTickets) {
+            return res.status(404).json({ message: "No ticket found"});
+        }
+
+        return res.render("userPages/userTickets", {
+            allTickets : allTickets,
+        })
+
+    } catch (error) {
+        console.error("Error fetching user tickets: ", error);
+        return res.status(500).json({ message: "Internal server error"});
+    }
+}
 
 export {
     registerUser,
     loginUser,
     updateUserInfo,
+    myTickets
 }

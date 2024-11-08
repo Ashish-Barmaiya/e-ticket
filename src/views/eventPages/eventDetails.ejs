@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= event.title %> - Event Details</title>
+</head>
+<body>
+    <h2><%= event.title %></h2>
+    <p><%= event.description %></p>
+    <p>Artist: <%= event.artist %></p>
+    <p>Host: <%= event.host.name %></p>
+    <p>Venue: <%= event.venueInformation.name %></p>
+    <p>Total Seats: <%= event.venueInformation.seatingCapacity %></p>
+    <p>Date: <%= new Date(event.date).toDateString() %></p>
+    <p>Start Time: <%= new Date(event.startTime).toLocaleTimeString() %></p>
+    <p>End Time: <%= event.endTime ? new Date(event.endTime).toLocaleTimeString() : "TBD" %></p>
+
+    <!-- <a href="/buy-ticket">Buy Ticket</a> -->
+
+    <form action="/events/<%= event.id %>/buy-ticket" method="post">
+        <label for="seatNumber">Seat Number</label>
+        <input type="text" name="seatNumber" placeholder="Enter Seat Number">
+        <button type="submit">Buy Ticket</button>
+    </form>
+
+</body>
+</html>

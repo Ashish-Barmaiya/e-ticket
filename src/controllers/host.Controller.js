@@ -147,7 +147,7 @@ const loginHost = (req, res, next) => {
         return next(loginErr);
       }
   
-      console.log("Successfully logged in host:", user);
+      console.log("Successfully logged in host:", user.email);
       res.redirect(`/host/${user.id}/dashboard`);
     });
   })(req, res, next);

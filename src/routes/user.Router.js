@@ -1,15 +1,24 @@
 import express from "express";
 import { userLoginAuth } from "../middlewares/auth.middleware.js";
-import { registerUser, loginUser, updateUserInfo } from "../controllers/user.Controllers.js";
-import { userRegisterValidator,
-         userLoginValidator,
-         userUpdateValidator } from "../utils/validators.js";
+import { 
+    registerUser,
+    loginUser,
+    updateUserInfo,
+    myTickets } from "../controllers/user.Controllers.js";
+import {
+    userRegisterValidator,
+    userLoginValidator,
+    userUpdateValidator } from "../utils/validators.js";
 
 const router = express.Router();
 
 /// USER PAGE GET ROUTE ///
 router.get("/", (req, res) => {
-    res.render("userPages/userPage")
+    if (req.user) {
+        res.redirect(`/user/${req.user.id}/profile`)
+    } else {
+        res.render("userPages/userPage")
+    }
 });
 
 /// USER SIGN UP PAGE GET ROUTE ///
@@ -49,7 +58,6 @@ router.get("/:userId/profile/edit-profile", userLoginAuth, (req, res) => {
         })
     })
 
-
 /// USER EDIT PROFILE POST ROUTE ///
 router.post("/:userId/profile/edit-profile", userLoginAuth, userUpdateValidator, updateUserInfo)
 
@@ -62,5 +70,7 @@ router.get("/:userId/user-sign-out", (req, res) => {
         res.redirect("/user")
     })
 });
+
+router.get("/:userId/profile/my-tickets", userLoginAuth, myTickets);
 
 export default router;

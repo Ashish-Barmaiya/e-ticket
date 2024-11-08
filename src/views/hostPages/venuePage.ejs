@@ -8,11 +8,16 @@
 <body>
     <h2>Your Venues</h2>
     <hr>
-    <p><% if (venues === null) { %>
-        You have not added any venue yet. Click below to add a venue.
-    <% } else { %>
-        You have <% venues.length.rowss %> venues added. Click below to add more venues.       
-    <% } %></p>
+    <% if (!venue) { %>
+        <p>You have not added any venue yet. Click below to add a venue.</p>
+    <% } else { %> 
+        <h4>Name: <%= venueName %></h4>
+        <p>Address: <%= venueAddress %></p>
+        <p>Venue Type: <%= venueType %></p>
+        <p>Seating Capacity: <%= seatingCapacity %></p>
+        <p>Seating Categories: <%= seatingCategories %></p>
+    <% } %>
+    <hr>
     <br>
     <a href="/host/<%= host.id %>/dashboard/venue/add-venue">Add Venue</a>
 </body>
