@@ -41,7 +41,6 @@ router.route("/hostlogin").post(hostLoginValidator, loginHost);
 
 /// HOST DASHBOARD GET ROUTE ///
 router.get("/:hostId/dashboard", hostLoginAuth, (req, res) => {
-    
     if (req.user.id === req.params.hostId) {
         res.status(200).render("hostDashboard", {
             host: req.user
@@ -64,30 +63,33 @@ router.get("/:hostId/hostlogout", (req, res) => {
 
 /// HOST EDIT PROFILE GET ROUTE ///
 router.get("/:hostId/dashboard/edit-profile", hostLoginAuth, (req, res) => {
-    
     if (req.user.id === req.params.hostId) {
-
         res.status(200).render("hostProfile", {
             host: req.user
         });
     } else {
         res.status(403).send("Access Denied");
-    }
-                
+    }           
 });
 
 /// VENUE GET ROUTE ///
 router.get("/:hostId/dashboard/venue", hostLoginAuth, async (req, res) => {
-
-    const venues = await prisma.venueInformation.findMany({
+    const venue = await prisma.venueInformation.findFirst({
         where: { hostId : req.params.hostId}
     });
 
     if (req.user.id === req.params.hostId) {
         res.render("hostPages/venuePage", {
             host: req.user,
-            venues
+            venue: JSON.stringify(venue),
+            venueName: venue.name,
+            venueAddress: venue.address,
+            venueType: venue.venueType,
+            seatingCapacity: venue.seatingCapacity,
+            seatingCategories: venue.seatingCategories,
         });
+        console.log(JSON.stringify(venue));
+
     } else {
         res.status(403).send("Access Denied");
     }
@@ -95,7 +97,6 @@ router.get("/:hostId/dashboard/venue", hostLoginAuth, async (req, res) => {
 
 /// ADD VENUE GET ROUTE ///
 router.get("/:hostId/dashboard/venue/add-venue", hostLoginAuth, async (req, res) => {
-
     const venues = await prisma.venueInformation.findMany({
         where: { hostId : req.params.hostId}
     });
@@ -104,6 +105,7 @@ router.get("/:hostId/dashboard/venue/add-venue", hostLoginAuth, async (req, res)
         res.render("hostPages/addvenuePage", {
             host: req.user,
             venues
+            
         });
     } else {
         res.status(403).send("Access Denied");
@@ -115,7 +117,6 @@ router.post("/:hostId/dashboard/venue/add-venue", hostLoginAuth, addVenue)
 
 /// LIST NEW EVENT GET ROUTE ///
 router.get("/:hostId/dashboard/list-new-events", hostLoginAuth, (req, res) => {
-
     if (req.user.id === req.params.hostId) {
         res.render("eventPages/newEventPage", {
             host: req.user
@@ -130,7 +131,6 @@ router.post("/:hostId/dashboard/list-new-events", hostLoginAuth, newEventValidat
 
 /// RESCHEDULE EVENT GET ROUTE ///
 router.get("/:hostId/dashboard/reschedule-events", hostLoginAuth, (req, res) => {
-
     if (req.user.id === req.params.hostId) {
         res.status(200).send("This is Reschedule Event Page");
     } else {
@@ -140,7 +140,6 @@ router.get("/:hostId/dashboard/reschedule-events", hostLoginAuth, (req, res) => 
 
 /// CANCEL EVENT GET ROUTE ///
 router.get("/:hostId/dashboard/cancel-events", hostLoginAuth, (req, res) => {
-
     if (req.user.id === req.params.hostId) {
         res.status(200).send("This is Cancel Event Page");
     } else {

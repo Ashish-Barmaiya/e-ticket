@@ -187,7 +187,6 @@ model Ticket {
   seatNumber   String?
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
-  // Add additional fields for ticket information as needed
   event        Event    @relation(fields: [eventId], references: [id])
 }
 

@@ -28,6 +28,7 @@ app.set("views", path.join(__dirname, "src/views"));
 import homePageRouter from "./src/routes/homePage.Router.js"; // home page route
 import hostRouter from "./src/routes/host.Router.js"; // host routes
 import userRouter from "./src/routes/user.Router.js"; // user routes
+import eventRouter from "./src/routes/event.Router.js"; // event routes
 
 ///// SETTING UP EXPRESS-SESSION /////
 app.use(session({
@@ -37,7 +38,7 @@ app.use(session({
    cookie: { 
        secure: false,
        httpOnly: true,
-       maxAge: 1000 * 60 * 10, // 10 minutes
+       maxAge: 1000 * 60 * 60, // 60 minutes
    },
 }));
 
@@ -48,10 +49,11 @@ app.use(passport.session());
 app.use("/", homePageRouter);
 app.use("/host", hostRouter);
 app.use("/user", userRouter);
+app.use("/events", eventRouter);
 
 
-app.get("*", (req, res) => {
-    res.status(404).send("ERROR 404!! PAGE NOT FOUND");
-});
+// app.get("*", (req, res) => {
+//     res.status(404).send("ERROR 404!! PAGE NOT FOUND");
+// });
 
 export { app };
