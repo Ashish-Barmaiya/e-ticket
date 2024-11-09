@@ -77,16 +77,18 @@ router.get("/:hostId/dashboard/venue", hostLoginAuth, async (req, res) => {
     const venue = await prisma.venueInformation.findFirst({
         where: { hostId : req.params.hostId}
     });
-
+    // if (!venue) {
+    //     res.render("hostPages/venuePage")
+    // }
     if (req.user.id === req.params.hostId) {
         res.render("hostPages/venuePage", {
             host: req.user,
             venue: JSON.stringify(venue),
-            venueName: venue.name,
-            venueAddress: venue.address,
-            venueType: venue.venueType,
-            seatingCapacity: venue.seatingCapacity,
-            seatingCategories: venue.seatingCategories,
+            // venueName: venue.name,
+            // venueAddress: venue.address,
+            // venueType: venue.venueType,
+            // seatingCapacity: venue.seatingCapacity,
+            // seatingCategories: venue.seatingCategories,
         });
         console.log(JSON.stringify(venue));
 

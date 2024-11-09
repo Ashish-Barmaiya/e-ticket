@@ -3,6 +3,61 @@ import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
 
+/// EVENT HOME PAGE CONTROLLER //
+const eventHomePage = async (req, res) => {
+    try {
+        const events = await prisma.event.findMany({
+            include: {
+                venueInformation: true,
+                host: true
+            }
+        });
+
+        // Checking if there are any events in the database
+        if (!events || events.length === 0) {
+            return res.render("eventPages/events", {
+                message: "No events available at the moment." // You can customize this message
+            });
+        }
+
+        // Rendering events page with event data
+        res.render("eventPages/events", {
+            events: events // Passing all events to the EJS template
+        });
+    } catch (error) {
+        console.error("Error fetching events:", error);
+        res.status(500).json({ message: "Error fetching events." });
+    }
+};
+
+/// EVENT DETAILS PAGE CONTROLLER //
+const eventDetailsPage = async (req, res) => {
+    console.log('Received request for event ID:', req.params.eventId); // Check if this log appears
+    try {
+        const { eventId } = req.params;
+        // Checking for the event
+        const event = await prisma.event.findUnique({
+            where: { id: Number(eventId) },
+            include: {
+                venueInformation: true,
+                host: true
+            }
+        });
+        // If event does not exits
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+        // Rendering event-details template
+        res.render("eventPages/eventDetails", {
+            event: event,
+        });
+    } catch (error) {
+        console.error("Error fetching event:", error);
+        res.status(500).json({ message: "Error fetching event details" });
+    }
+}
+
+/// CREATING NEW EVENT ///
 const newEvent = async (req, res) => {
     // Validating data using express-validator
     const validationErrors = validationResult(req);
@@ -28,7 +83,7 @@ const newEvent = async (req, res) => {
     const hostId = req.user.id;
 
     // Checking whether host has added venues or not
-    const checkVenue = await prisma.venueInformation.findMany({
+    const checkVenue = await prisma.venueInformation.findFirst({
         where: { hostId }
     });
     // If there is no venue added by host, throw an error
@@ -100,4 +155,8 @@ const newEvent = async (req, res) => {
     }
 };
 
-export { newEvent };
+export { 
+    newEvent,
+    eventHomePage,
+    eventDetailsPage
+ };
