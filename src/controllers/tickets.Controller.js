@@ -26,67 +26,88 @@ class TicketController {
                 return res.status(400).json({ message: "User not signed in"})
             } 
 
-            // Fetching event details to get the price
-            const event = await prisma.event.findUnique({
-                where: { id: eventId },
-                select: { price: true },
-            });
-
-            if (!event) {
-                return res.status(404).json({ message: "Event not found" });
-            }
-
-            const { price } = event;
+            await prisma.$transaction(async (prisma) => {
             
-            // Getting the current max ticket number for the event to increment
-            const lastTicket = await prisma.ticket.findFirst({
-                where: { eventId: eventId },
-                orderBy: { ticketNumber: 'desc' },
-            });
+                // Fetching event details to get the price
+                const event = await prisma.event.findUnique({
+                    where: { id: eventId },
+                    select: { 
+                        price: true,
+                        ticketsAvailable: true
+                    },
+                });
 
-            const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
+                // If event does not exist
+                if (!event) {
+                    return res.status(404).json({ message: "Event not found" });
+                }
 
-            // Ensure seatNumber is a string or null
-            const validSeatNumber = seatNumber ? String(seatNumber) : null;
+                // Checking whether seats are available
+                let { ticketsAvailable } = event;
 
-            // Checking is seat number is already booked
-            const checkSeatNumber = await prisma.ticket.findFirst({
-                where: { seatNumber: validSeatNumber}
-            })
+                if (ticketsAvailable == 0) {
+                    return response.status(400).json({ message: "Tickets sold out." })
+                }
 
-            if (checkSeatNumber) {
-                return res.status(400).json({ message: "Seat already booked"})
-            }
+                const { price } = event;
             
-            // Creating new ticket in the database
-            const createdTicket = await prisma.ticket.create({
-                data: {
-                    ticketNumber: ticketNumber,
-                    userId: userId,
-                    eventId: eventId,
-                    price: price,
-                    seatNumber: validSeatNumber,
-                },
-            });
+                // Getting the current max ticket number for the event to increment
+                const lastTicket = await prisma.ticket.findFirst({
+                    where: { eventId: eventId },
+                    orderBy: { ticketNumber: 'desc' },
+                });
 
-            console.log("Ticket created successfully:", createdTicket);
+                const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
 
-            // return res.status(201).json({
-            //     message: "Ticket created successfully",
-            //     ticket: createdTicket,
-            // });
-            return res.redirect(`/events//ticket/${createdTicket.id}`)
-        } catch (error) {
-            console.error("Error creating ticket:", error);
-            return res.status(500).json({ message: "Internal server error while creating ticket" });
-        }
+                // Ensure seatNumber is a string or null
+                const validSeatNumber = seatNumber ? String(seatNumber) : null;
+
+                // Checking is seat number is already booked
+                const checkSeatNumber = await prisma.ticket.findFirst({
+                    where: {
+                        seatNumber: validSeatNumber,
+                        eventId: eventId,
+                    }
+                });
+
+                if (checkSeatNumber) {
+                    return res.status(400).json({ message: "Seat already booked"})
+                }
+            
+                // Creating new ticket in the database
+                const createdTicket = await prisma.ticket.create({
+                    data: {
+                        ticketNumber: ticketNumber,
+                        userId: userId,
+                        eventId: eventId,
+                        price: price,
+                        seatNumber: validSeatNumber,
+                    },
+                });
+
+                console.log("Ticket created successfully:", createdTicket);
+
+                // Decrementing available tickets from event database
+                const updatedEvent = await prisma.event.update({
+                    where: { id: eventId },
+                    data: { ticketsAvailable: ticketsAvailable - 1 }
+                });
+
+                console.log("updated event: ", updatedEvent);  
+                });
+
+                return res.redirect(`/events//ticket/${createdTicket.id}`);
+
+            } catch (error) {
+                console.error("Error creating ticket:", error);
+                return res.status(500).json({ message: "Internal server error while creating ticket" });
+            }
     }
-
+        
     // Method to get formatted ticket details
     static async printTicketDetails(req, res) {
         const { ticketId } = req.params;
         console.log("ticket ID: ", ticketId);
-        
 
         try {
             // Fetch ticket with user and event details
@@ -116,7 +137,6 @@ class TicketController {
 
             console.log("Ticket fetched: ", ticket);
             
-
             if (!ticket) {
                 return res.status(404).json({ message: "Ticket not found" });
             }
@@ -134,10 +154,12 @@ class TicketController {
             };
 
             console.log("Formatted Ticket Details:", formattedDetails);
+            
             return res.status(200).json({
                 message: "Ticket details retrieved successfully",
                 ticket: formattedDetails,
             });
+            
         } catch (error) {
             console.error("Error retrieving ticket details:", error);
             return res.status(500).json({ message: "Internal server error while retrieving ticket details" });
