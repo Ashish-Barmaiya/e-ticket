@@ -98,7 +98,7 @@ const newEvent = async (req, res) => {
         return res.status(404).json({ message: "Venue does not match" });
     }
     // If venue matches, proceed further
-    console.log(`Venue name provided by user matched venue name in database. Venue Name is ${venue}, Venue in database is ${checkVenue.name}. Venue id is ${checkVenue.id}` );
+    console.log(`Venue name provided by user matched venue name in database. Venue Name is ${venue}, Venue in database is ${checkVenue.name}. Venue id is ${checkVenue.id}`);
 
     try {
         // Parsing date and time strings into date objects

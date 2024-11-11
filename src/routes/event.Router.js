@@ -13,7 +13,7 @@ router.get("/", eventHomePage)
 /// EVENT DETAILS GET ROUTE ///
 router.get("/:eventId/details", eventDetailsPage);
 
-/// BUY TICKET GET ROUTE ///
+/// BUY-TICKET GET ROUTE ///
 router.post("/:eventId/buy-ticket", userLoginAuth, TicketController.buyTicket);
 
 /// PRINT TICKET ROUTE ///
