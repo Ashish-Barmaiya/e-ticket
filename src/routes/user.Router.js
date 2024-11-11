@@ -14,8 +14,8 @@ const router = express.Router();
 
 /// USER PAGE GET ROUTE ///
 router.get("/", (req, res) => {
-    if (req.user) {
-        res.redirect(`/user/${req.user.id}/profile`)
+    if (req.cookies.accessToken) {
+        res.redirect("/user/profile")
     } else {
         res.render("userPages/userPage")
     }
@@ -40,37 +40,30 @@ router.get("/user-sign-in", (req, res) => {
 router.route("/user-sign-in").post(userLoginValidator, loginUser)
 
 /// USER PROFILE PAGE GET ROUTE ///
-router.get("/:userId/profile", userLoginAuth, (req, res) => {
-
-    if (req.user.id === req.params.userId) {
+router.get("/profile", userLoginAuth, (req, res) => {
         res.render("userPages/userProfile", {
             user: req.user
         });
-    } else {
-        res.status(403).send("Access Denied!!")
-    }
 });
 
 /// USER EDIT PROFILE GET ROUTE ///
-router.get("/:userId/profile/edit-profile", userLoginAuth, (req, res) => {
+router.get("/profile/edit-profile", userLoginAuth, (req, res) => {
         res.render("userPages/userEditProfile", {
             user: req.user,
         })
     })
 
 /// USER EDIT PROFILE POST ROUTE ///
-router.post("/:userId/profile/edit-profile", userLoginAuth, userUpdateValidator, updateUserInfo)
+router.post("/profile/edit-profile", userLoginAuth, userUpdateValidator, updateUserInfo)
 
 /// USER LOG OUT GET ROUTE ///
-router.get("/:userId/user-sign-out", (req, res) => {
-    req.logout(function (err) {
-        if (err) {
-            return next(err)
-        }
-        res.redirect("/user")
-    })
+router.get("/user-sign-out", (req, res) => {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.redirect("/user/user-sign-in");
 });
 
-router.get("/:userId/profile/my-tickets", userLoginAuth, myTickets);
+// USER MY-TICKETS GET ROUTE //
+router.get("/profile/my-tickets", userLoginAuth, myTickets);
 
 export default router;

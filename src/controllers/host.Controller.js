@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { validationResult } from "express-validator";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 
 env.config();
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
@@ -128,28 +129,35 @@ const loginHost = (req, res, next) => {
     return res.status(400).json({ errors: validationErrors.array() });
   }
   // Using Passport authenticate method with the local strategy
-  passport.authenticate("local-host", (err, user, info) => {
+  passport.authenticate("local-host", async (err, user, info) => {
     console.log("Inside passport.authenticate callback");
   
-    if (err) {
-      console.error("Error in passport authentication:", err);
-      return next(err);
-    }
-      
-    if (!user) {
-      console.log("Authentication failed:", info.message);
-      return res.redirect("/host/hostlogin?error=" + info.message);
-    }
-  
-    req.login(user, (loginErr) => {
-      if (loginErr) {
-        console.error("Error in req.login:", loginErr);
-        return next(loginErr);
-      }
-  
-      console.log("Successfully logged in host:", user.email);
-      res.redirect(`/host/${user.id}/dashboard`);
+    if (err) return next(err);   
+    if (!user) return res.redirect("/host/hostlogin?error=" + info.message);
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    //Store refreshToken in database
+    await prisma.hosts.update({
+      where: { id: user.id },
+      data: { refreshToken }
     });
+
+    // Send token in cookies
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+     });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+    });
+
+    // Redirect to host-dashboard page
+    res.redirect("/host/dashboard");
   })(req, res, next);
 }
 
@@ -157,9 +165,7 @@ const loginHost = (req, res, next) => {
 const addVenue = async(req, res) => {
 
   const { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } = req.body;
-
   const hostId = req.user.id;
-
   console.log("Data Fetched:", { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } );
   
   try {

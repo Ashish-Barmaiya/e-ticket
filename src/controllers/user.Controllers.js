@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { validationResult } from "express-validator";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 
 env.config();
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
@@ -122,27 +123,35 @@ const loginUser = (req, res, next) => {
         return res.status(400).json({ errors: validationErrors.array() });
     }
     // Using Passport authenticate method with the local strategy
-    passport.authenticate("local-user", (err, user, info) => {
+    passport.authenticate("local-user", async (err, user, info) => {
 
-        if (err) {
-            return next(err)
-        }
+        if (err) return next(err);
+        if(!user) return res.redirect("/user/user-sign-in?error=" + info.message);
 
-        if(!user) {
-            console.log("User authentication failed: ", info.message);
-            return res.redirect("/user/user-sign-in?error=" + info.message) 
-        }
+        // Generate tokens
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
 
-        req.login(user, (loginErr) => {
-            if (loginErr) {
-                return next(loginErr)
-            }
-            console.log(`Successfully logged in user. Name: ${user.fullName}. Email ${user.email}.`);
-            return res.redirect(`/user/${user.id}/profile`)
-            
-        })
+        // Store refresh token in database
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { refreshToken }
+        });
 
-    })(req, res, next)
+        // Send token in cookies
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        });
+
+        // Redirect to profile page
+        res.redirect("/user/profile");
+    })(req, res, next);
 }
 
 /// UPDATE USER INFO ///

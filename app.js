@@ -5,10 +5,12 @@ import session from "express-session";
 import passport from "passport";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser"; 
 
 env.config();
 const app = express();
 
+app.use(cookieParser());
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true
