@@ -46,7 +46,7 @@ class TicketController {
                 let { ticketsAvailable } = event;
 
                 if (ticketsAvailable == 0) {
-                    return response.status(400).json({ message: "Tickets sold out." })
+                    return res.status(400).json({ message: "Tickets sold out." })
                 }
 
                 const { price } = event;
