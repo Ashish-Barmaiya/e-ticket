@@ -9,7 +9,7 @@
     <h1>Welcome, <%= host.name %></h1>
     <h4>This is your dashboard where you can manage your events.</h4>
     <br>
-    <a href="/host/<%= host.id %>/dashboard/edit-profile">Edit Profile</a>
+    <a href="/host/dashboard/edit-profile">Edit Profile</a>
     <hr>
     <h3>Profile</h3>
     <p>Name: <%= host.name %></p>
@@ -26,15 +26,15 @@
     <p>Customer Support: <%= host.supportContactInfo %></p>
     <br>
     <hr>
-    <a href="/host/<%= host.id %>/dashboard/venue">Your Venues</a>
+    <a href="/host/dashboard/venue">Your Venues</a>
     <br>
     <hr>
-    <a href="/host/<%= host.id %>/dashboard/list-new-events">List an event</a>
+    <a href="/host/dashboard/list-new-events">List an event</a>
     <hr>
-    <a href="/host/<%= host.id %>/dashboard/reschedule-events">Reschedule event</a>
+    <a href="/host/dashboard/reschedule-events">Reschedule event</a>
     <hr>
-    <a href="/host/<%= host.id %>/dashboard/cancel-events">Cancel event</a>
+    <a href="/host/dashboard/cancel-events">Cancel event</a>
     <hr>
     <br>
-    <a href="/host/hostdashboard/hostlogout" role="button">Log Out</a>
+    <a href="/host/hostlogout" role="button">Log Out</a>
 </html>
