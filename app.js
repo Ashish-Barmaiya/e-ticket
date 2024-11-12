@@ -5,7 +5,7 @@ import session from "express-session";
 import passport from "passport";
 import path from "path";
 import { fileURLToPath } from "url";
-import cookieParser from "cookie-parser"; 
+import cookieParser from "cookie-parser";
 
 env.config();
 const app = express();

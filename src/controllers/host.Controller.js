@@ -118,7 +118,6 @@ passport.deserializeUser(async (id, done) => {
   }
 });
   
-  
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginHost = (req, res, next) => {
   
@@ -161,7 +160,53 @@ const loginHost = (req, res, next) => {
   })(req, res, next);
 }
 
-/// ADD VENUE ///
+// NEW REFRESH TOKEN//
+const newRefreshToken = async (req, res) => {
+  const refreshToken = req.cookie.refreshToken;
+
+  if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
+
+  try {
+    // Find host with refresh token
+    const host = await prisma.hosts.findFirst({
+      where: { refreshToken: refreshToken}
+    });
+
+    if (!host) return res.status(401).json({ message: "Invalid refresh token" });
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    // Update tokens
+    const updateAccessToken = generateAccessToken(user);
+    const updateRefreshToken = generateRefreshToken(user);
+
+    // Update refresh token in database
+    await prisma.hosts.update({
+      where: { id: host.id },
+      data: { refreshToken: refreshToken }
+    });
+
+    // Set new cookies
+    res.cookie("accessToken", updateAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+    });
+
+    res.cookie("refreshToken", updateRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+    });
+
+    res.status(200).json({ message: "Tokens refreshed successfully" });
+  } catch (error) {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
+}
+
+// ADD VENUE //
 const addVenue = async(req, res) => {
 
   const { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } = req.body;
@@ -203,5 +248,6 @@ const addVenue = async(req, res) => {
 export {
   registerHost,
   loginHost,
-  addVenue
+  addVenue,
+  newRefreshToken
 };
