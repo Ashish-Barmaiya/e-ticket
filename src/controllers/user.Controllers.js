@@ -154,7 +154,53 @@ const loginUser = (req, res, next) => {
     })(req, res, next);
 }
 
-/// UPDATE USER INFO ///
+// NEW REFRESH TOKEN //
+const newRefreshToken = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
+
+    try {
+        // Find user with refresh token
+        const user = await prisma.user.findFirst({
+            where: { refreshToken: refreshToken}
+        });
+
+        if (!user) return res.status(401).json({ message: "Invalid refresh token" });
+
+        // Verify refresh token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // Update tokens
+        const updateAccessToken = generateAccessToken(user);
+        const updateRefreshToken = generateRefreshToken(user);
+
+        // Update refresh token in database
+        await prisma.user.update({
+            where: { id: user.id},
+            data: { refreshToken: updateRefreshToken }
+        });
+
+        // Set new cookies
+        res.cookie("accessToken", updateAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        });
+
+        res.cookie("refreshToken", updateRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        });
+
+        res.status(200).json({ message: "Tokens refreshed successfully"});
+    } catch (error) {
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        return res.status(401).json({ message: "Invalid refresh token" });
+    }
+}
+
+// UPDATE USER INFO //
 const updateUserInfo = async (req, res) => {
     try {
         // Validate and sanitize incoming data
@@ -222,7 +268,7 @@ const updateUserInfo = async (req, res) => {
     }
 };
 
-/// USER'S TICKETS ///
+// USER'S TICKETS //
 const myTickets = async(req, res) => {
 
     try {
@@ -265,5 +311,6 @@ export {
     registerUser,
     loginUser,
     updateUserInfo,
-    myTickets
+    myTickets,
+    newRefreshToken
 }

@@ -2,7 +2,7 @@ import express from "express";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import path from "path";
-import { registerHost, loginHost, addVenue} from "../controllers/host.Controller.js";
+import { registerHost, loginHost, addVenue, newRefreshToken} from "../controllers/host.Controller.js";
 import { hostRegisterValidator, hostLoginValidator } from "../utils/validators.js";
 import { hostLoginAuth } from "../middlewares/auth.middleware.js";
 import { newEventValidator } from "../utils/validators.js";
@@ -49,13 +49,6 @@ router.get("/dashboard", hostLoginAuth, (req, res) => {
             host: req.user
     });
                 
-});
-
-/// HOST LOGOUT  GET ROUTE ///
-router.get("/hostlogout", (req, res) => {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.redirect("/host/hostlogin");
 });
 
 /// HOST EDIT PROFILE GET ROUTE ///
@@ -109,6 +102,16 @@ router.get("/dashboard/reschedule-events", hostLoginAuth, (req, res) => {
 /// CANCEL EVENT GET ROUTE ///
 router.get("/dashboard/cancel-events", hostLoginAuth, (req, res) => {
     res.status(200).send("This is Cancel Event Page");
+});
+
+// HOST NEW-REFRESH-TOKEN POST ROUTE //
+router.post("/refresh-token", newRefreshToken);
+
+// HOST LOGOUT  GET ROUTE //
+router.get("/hostlogout", (req, res) => {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.redirect("/host/hostlogin");
 });
 
 export default router;
