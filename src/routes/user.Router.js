@@ -5,11 +5,15 @@ import {
     loginUser,
     updateUserInfo,
     myTickets,
-    newRefreshToken } from "../controllers/user.Controllers.js";
+    newRefreshToken,
+    userChangePassword 
+} from "../controllers/user.Controllers.js";
 import {
     userRegisterValidator,
     userLoginValidator,
-    userUpdateValidator } from "../utils/validators.js";
+    userUpdateValidator,
+    userChangePasswordValidator 
+} from "../utils/validators.js";
 
 const router = express.Router();
 
@@ -59,6 +63,14 @@ router.post("/profile/edit-profile", userLoginAuth, userUpdateValidator, updateU
 
 // USER MY-TICKETS GET ROUTE //
 router.get("/profile/my-tickets", userLoginAuth, myTickets);
+
+// USER CHANGE PASSWORD GET ROUTE //
+router.get("/profile/user-change-password", userLoginAuth, (req, res) => {
+    res.render("userPages/userChangePassword")
+});
+
+// USER CHANGE PASSWORD POST ROUTE //
+router.post("/profile/user-change-password", userLoginAuth, userChangePasswordValidator, userChangePassword)
 
 // USER NEW-REFRESH-TOKEN POST ROUTE //
 router.post("/refresh-token", newRefreshToken)

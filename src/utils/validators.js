@@ -147,6 +147,23 @@ const newEventValidator = [
 
 ]
 
+const userChangePasswordValidator = [
+      check("email")
+             .trim()
+             .notEmpty().withMessage("Email is required")
+             .isEmail().withMessage("Invalid email address")
+             .normalizeEmail(), 
+      check("oldPassword")
+             .trim()
+             .notEmpty().withMessage("Old password is required"),
+      check("newPassword")
+             .trim()
+             .notEmpty().withMessage("New password is required"),
+      check("confirmPassword")
+             .trim()
+             .notEmpty().withMessage("Confirm password field is required")
+]
+
 
 export { 
      hostRegisterValidator,
@@ -155,4 +172,5 @@ export {
      userLoginValidator,
      userUpdateValidator,
      newEventValidator,
+     userChangePasswordValidator
  }
