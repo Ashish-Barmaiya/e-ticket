@@ -20,7 +20,7 @@ const registerUser = async(req, res) => {
         console.log("Error validating data:");
         return res.status(400).json({ errors: validationErrors.array()} );
     }
-
+    // Accessing validated data
     const { name, email, phoneNumber, password } = req.body;
 
     try {
@@ -64,11 +64,9 @@ passport.use(
         try {
             // Finding the user by email in the database
             const user = await prisma.user.findUnique({
-                where: {
-                    email: email
-                }
+                where: { email: email }
             })
-            // If the host is not found, returning an error
+            // If the user is not found, returning an error
             if (!user) {
                 return done(null, false, { message: "User does not exist" });
             }
@@ -78,7 +76,7 @@ passport.use(
             if (!isPasswordValid) {
                 return done(null, false, { message: "Incorrect Password" });
             }
-            // Authentication successful, returning the host object
+            // Authentication successful, returning the user object
             return done(null, user)
 
         } catch (error) {
@@ -86,36 +84,10 @@ passport.use(
             return done (error)
         }
     })
-)
-
-// PASSPORT SERIALIZE USER //
-passport.serializeUser((user, done) => {
-    done(null, user.id); // Serialize only the user ID
-});
-
-// PASSPORT DESERIALIZE USER //
-passport.deserializeUser(async (id, done) => {
-    try {
-        // For Host table
-        const host = await prisma.hosts.findUnique({ where: { id: id } });
-        if (host) {
-            return done(null, host);
-        }
-        // For User table
-        const user = await prisma.user.findUnique({ where: { id: id } });
-        if (user) {
-            return done(null, user);
-        }
-        // If no match is found in either tables
-        return done(null, false);
-    } catch (error) {
-        return done(error, false);
-    }
-});
+);
 
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginUser = (req, res, next) => {
-    
     // Validating the request using express-validator
     const validationErrors = validationResult(req);
 
@@ -209,9 +181,13 @@ const updateUserInfo = async (req, res) => {
             console.log("Error validating data:");
             return res.status(400).json({ errors: validationErrors.array() });
         }
-
+        // Get data from request
         const { fullName, dateOfBirth, gender, areaPincode, addressLine1, addressLine2, landmark, state, country } = req.body;
-        const userId = req.user.id;
+
+        // Getting user through refreshToken
+        const user = await prisma.user.findFirst({
+            where: { refreshToken: req.cookies.refreshToken }
+        })
 
         // Helper to filter out undefined or empty fields
         const buildUpdateData = (fields) => {
@@ -234,13 +210,13 @@ const updateUserInfo = async (req, res) => {
         let updateUser;
         if (Object.keys(userUpdateData).length) {
             updateUser = await prisma.user.update({
-                where: { id: userId },
+                where: { id: user.id },
                 data: userUpdateData,
             });
         }
 
         // Check if user address exists, then update or create as necessary
-        const existingAddress = await prisma.userAddress.findFirst({ where: { userId: userId } });
+        const existingAddress = await prisma.userAddress.findFirst({ where: { userId: user.id } });
 
         if (existingAddress) {
             // Update address if there are fields to update
@@ -254,7 +230,7 @@ const updateUserInfo = async (req, res) => {
         } else if (Object.keys(addressUpdateData).length) {
             // Create new address if none exists and there is data to insert
             await prisma.userAddress.create({
-                data: { userId: userId, ...addressUpdateData },
+                data: { userId: user.id, ...addressUpdateData },
             });
             console.log("Created new user address");
         }
@@ -293,9 +269,7 @@ const myTickets = async(req, res) => {
             },
         });
 
-        if (!allTickets) {
-            return res.status(404).json({ message: "No ticket found"});
-        }
+        if (!allTickets) return res.status(404).json({ message: "No ticket found"});
 
         return res.render("userPages/userTickets", {
             allTickets : allTickets,
