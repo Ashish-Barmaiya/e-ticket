@@ -1,8 +1,6 @@
 import express from "express";
 import env from "dotenv";
 import cors from "cors";
-import session from "express-session";
-import passport from "passport";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
@@ -31,21 +29,6 @@ import homePageRouter from "./src/routes/homePage.Router.js"; // home page route
 import hostRouter from "./src/routes/host.Router.js"; // host routes
 import userRouter from "./src/routes/user.Router.js"; // user routes
 import eventRouter from "./src/routes/event.Router.js"; // event routes
-
-///// SETTING UP EXPRESS-SESSION /////
-app.use(session({
-   secret: process.env.SESSION_SECRET,
-   resave: false,
-   saveUninitialized: false,
-   cookie: { 
-       secure: false,
-       httpOnly: true,
-       maxAge: 1000 * 60 * 60, // 60 minutes
-   },
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 ///// USING ROUTES /////
 app.use("/", homePageRouter);

@@ -11,14 +11,12 @@ const saltRounds = parseInt(process.env.SALT_ROUNDS);
 const prisma = new PrismaClient();
 
 const registerHost = async (req, res) => {
-
     // Validating the request using express-validator
     const validationErrors = validationResult(req);
 
     if (!validationErrors.isEmpty()) {
         return res.status(400).json({ errors: validationErrors.array() });
     }
-
     // Accessing validated data
     const { name, email, phoneNumber, password } = req.body;
     
@@ -29,12 +27,10 @@ const registerHost = async (req, res) => {
                 email: email
             } 
         });
-        
         // If host already exists, sending error
         if (existingHost) {    
             return res.status(400).json({ message: "Host already exists with this email" });
-        }
-        
+        } 
         // If the host does not exist, inserting a new host record
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -67,7 +63,6 @@ passport.use(
   "local-host",
   new LocalStrategy({ usernameField: "email" }, async function verify (email, password, done) {
     try {
-  
         // Finding the host by email in the database
         const host = await prisma.hosts.findUnique({
           where: { email },
@@ -120,7 +115,6 @@ passport.deserializeUser(async (id, done) => {
   
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginHost = (req, res, next) => {
-  
   // Validating the request using express-validator
   const validationErrors = validationResult(req);
   
