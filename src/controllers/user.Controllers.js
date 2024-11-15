@@ -64,7 +64,7 @@ passport.use(
         try {
             // Finding the user by email in the database
             const user = await prisma.user.findUnique({
-                where: { email: email }
+                where: { email }
             })
             // If the user is not found, returning an error
             if (!user) {
@@ -165,9 +165,11 @@ const newRefreshToken = async (req, res) => {
         });
 
         res.status(200).json({ message: "Tokens refreshed successfully"});
+
     } catch (error) {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
+        console.log("Error generating new refresh token for user: ", error);
         return res.status(401).json({ message: "Invalid refresh token" });
     }
 }
@@ -181,7 +183,7 @@ const updateUserInfo = async (req, res) => {
             console.log("Error validating data:");
             return res.status(400).json({ errors: validationErrors.array() });
         }
-        // Get data from request
+        // Get data from request //
         const { fullName, dateOfBirth, gender, areaPincode, addressLine1, addressLine2, landmark, state, country } = req.body;
 
         // Getting user through refreshToken
@@ -189,7 +191,7 @@ const updateUserInfo = async (req, res) => {
             where: { refreshToken: req.cookies.refreshToken }
         })
 
-        // Helper to filter out undefined or empty fields
+        // Helper to filter out undefined or empty fields 
         const buildUpdateData = (fields) => {
             return Object.fromEntries(
                 Object.entries(fields).filter(([_, value]) => value !== undefined && value !== "")
@@ -244,7 +246,7 @@ const updateUserInfo = async (req, res) => {
     }
 };
 
-// USER'S TICKETS //
+// USER MY-TICKETS //
 const myTickets = async(req, res) => {
 
     try {
@@ -304,7 +306,7 @@ const userChangePassword = async (req, res) =>{
         
             // Compare email
             const checkEmail = await prisma.user.findFirst({
-                where: { email: email }
+                where: { email }
             });
 
             if (!checkEmail) return res.status(400).json({ message: "Invalid email" }); 

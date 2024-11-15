@@ -10,6 +10,7 @@ env.config();
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 const prisma = new PrismaClient();
 
+// HOST REGISTER //
 const registerHost = async (req, res) => {
     // Validating the request using express-validator
     const validationErrors = validationResult(req);
@@ -87,32 +88,6 @@ passport.use(
   })
 );
   
-// PASSPORT SERIALIZEUSER //
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-  
-// PASSPORT DESERIALIZEUSER //
-passport.deserializeUser(async (id, done) => {
-  try {
-      // For Host table
-      const host = await prisma.hosts.findUnique({ where: { id } });
-      if (host) {
-        return done(null, host);
-      }
-      // For User table
-      const user = await prisma.user.findUnique({ where: { id } });
-      if (user) {
-        return done(null, user);
-      }
-      // If no match is found in either tables
-      return done(null, false);
-  
-  } catch (error) {
-      return done(error, false);
-  }
-});
-  
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginHost = (req, res, next) => {
   // Validating the request using express-validator
@@ -123,7 +98,6 @@ const loginHost = (req, res, next) => {
   }
   // Using Passport authenticate method with the local strategy
   passport.authenticate("local-host", async (err, user, info) => {
-    console.log("Inside passport.authenticate callback");
   
     if (err) return next(err);   
     if (!user) return res.redirect("/host/hostlogin?error=" + info.message);
@@ -193,29 +167,40 @@ const newRefreshToken = async (req, res) => {
     });
 
     res.status(200).json({ message: "Tokens refreshed successfully" });
+
   } catch (error) {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
+    console.log("Error generating new refresh token for host: ", error);
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 }
 
 // ADD VENUE //
 const addVenue = async(req, res) => {
+  // Validate and Sanitize data
 
+  // Get Data from request
   const { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } = req.body;
-  const hostId = req.user.id;
-  console.log("Data Fetched:", { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } );
+  console.log("Data Fetched:", { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType });
   
+  // Getting host using refresh token
+  const host = await prisma.hosts.findFirst({
+    where: { refreshToken: req.cookies.refreshToken }
+  });
+
   try {
+    // Check for existing venue with same name and address
     const existingVenue = await prisma.venueInformation.findFirst({
-    where: { name, address }
+    where: { 
+      name,
+      address
+    }
     });
 
-    if (existingVenue) {
-    return res.status(400).json({ message: "Venue already added" });
-    }
+    if (existingVenue) return res.status(400).json({ message: "Venue already added" });
 
+    // Create new venue in database
     const newVenue = await prisma.venueInformation.create({
       data: {
         name,
@@ -225,11 +210,12 @@ const addVenue = async(req, res) => {
         seatingLayout,
         venueType,
         host: {
-          connect: { id: hostId } // Connect the event to the host
-      }
+          connect: { id: host.id } // Connect the event to the host
+          }
       }
     });
 
+    // Return success
     console.log("Venue Created Successfully: ", newVenue);
     return res.status(200).json({ message: "Venue Create Successfully", venue: newVenue });
     
@@ -238,10 +224,69 @@ const addVenue = async(req, res) => {
     res.status(500).json({ message: "Internal Server error" });
   }
 }
-  
+
+// HOST CHANGE PASSWORD //
+const hostChangePassword = async (req, res) => {
+  // Validate and Sanitize data
+  const validationErrors = validationResult(req);
+
+  if (!validationErrors.isEmpty()) {
+    console.log("Error validating data:");
+    return res.status(400).json({ errors: validationErrors.array()} );
+  }
+  // Get data from request
+  const { email, oldPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    prisma.$transaction( async (prisma) => {
+      // Get host using refresh token from cookies
+      const host = await prisma.hosts.findFirst({
+        where: { refreshToken: req.cookies.refreshToken }
+      });
+
+      if (!host) return res.status(404).json({ message: "Host does not exist or Invalid refresh token." });
+
+      // Compare email
+      const checkEmail = await prisma.hosts.findUnique({
+        where: { email }
+      });
+
+      if (!checkEmail) return res.status(400).json({ message: "Email does not exist." });
+
+      // Compare Old Password using bcrypt
+      const compareOldPassword = await bcrypt.compare(oldPassword, host.password);
+
+      if (!compareOldPassword) return res.status(400).json({ message: "Incorrect password" });
+
+      // Match New Password and Confirm Password
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: "New Password does not match with confirm password" });
+      }
+
+      // Hash New Password
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds)
+
+      // Update hosts table with new password
+      const changedPassword = await prisma.hosts.update({
+        where: { id: host.id },
+        data: { password: hashedPassword }
+      });
+      
+      // Return success
+      console.log("Host Password changed successfully. ", changedPassword);
+      return res.status(200).json({ message: "Password changed successfully" });
+
+    })
+  } catch (error) {
+    console.error("Error changing host password: ", error);
+    return res.status(500).json({ message: "Internal error while changing password" });    
+  }
+}
+
 export {
   registerHost,
   loginHost,
   addVenue,
-  newRefreshToken
-};
+  newRefreshToken,
+  hostChangePassword
+}
