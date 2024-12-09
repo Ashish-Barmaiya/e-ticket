@@ -6,7 +6,7 @@ import {
     registerHost,
     loginHost,
     addVenue,
-    newRefreshToken,
+    // newRefreshToken,
     hostChangePassword 
 } from "../controllers/host.Controller.js";
 import {
@@ -123,7 +123,7 @@ router.get("/dashboard/host-change-password", hostLoginAuth, (req, res) => {
 router.post("/dashboard/host-change-password", hostLoginAuth, hostChangePasswordValidator, hostChangePassword)
 
 // HOST NEW-REFRESH-TOKEN POST ROUTE //
-router.post("/refresh-token", newRefreshToken);
+// router.post("/refresh-token", newRefreshToken);
 
 // HOST LOGOUT  GET ROUTE //
 router.get("/hostlogout", (req, res) => {

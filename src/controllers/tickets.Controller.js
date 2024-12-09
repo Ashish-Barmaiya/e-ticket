@@ -13,68 +13,66 @@ class TicketController {
 
     // Method to buy a ticket (generate a new ticket)
     static async buyTicket(req, res) {
-        const seatNumber  = req.body.seatNumber; // Getting seatNumber from frontend
-        const userId = req.user.id;  // Getting userId from session
-        const eventId = parseInt(req.params.eventId, 10); // Getting eventId from params
-
-        console.log("user is: ", userId);
-        console.log("Seat Number is: ", seatNumber);
-        
         try {
-            // Checking if user is logged in or not
-            if (!userId) {
-                return res.status(400).json({ message: "User not signed in"})
-            } 
-
-            await prisma.$transaction(async (prisma) => {
-            
-                // Fetching event details to get the price
+            // Get user using refreshToken
+            const user = await prisma.user.findFirst({
+                where: { refreshToken: req.cookies.refreshToken }
+            });
+    
+            if (!user) {
+                return res.status(400).json({ message: "User not signed in" });
+            }
+    
+            const seatNumber = req.body.seatNumber; // Getting seatNumber from frontend
+            const userId = user.id; // Getting userId from user object
+            const eventId = parseInt(req.params.eventId, 10); // Getting eventId from params
+    
+            const result = await prisma.$transaction(async (prisma) => {
+                // Fetching event details to get the price and ticketsAvailable
                 const event = await prisma.event.findUnique({
                     where: { id: eventId },
-                    select: { 
+                    select: {
                         price: true,
-                        ticketsAvailable: true
+                        ticketsAvailable: true,
                     },
                 });
-
-                // If event does not exist
+    
                 if (!event) {
-                    return res.status(404).json({ message: "Event not found" });
+                    throw new Error("Event not found");
                 }
-
-                // Checking whether seats are available
-                let { ticketsAvailable } = event;
-
-                if (ticketsAvailable == 0) {
-                    return res.status(400).json({ message: "Tickets sold out." })
+    
+                let { ticketsAvailable, price } = event;
+    
+                if (ticketsAvailable === 0) {
+                    throw new Error("Tickets sold out.");
                 }
-
-                const { price } = event;
-            
-                // Getting the current max ticket number for the event to increment
-                const lastTicket = await prisma.ticket.findFirst({
-                    where: { eventId: eventId },
-                    orderBy: { ticketNumber: 'desc' },
-                });
-
-                const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
-
+    
                 // Ensure seatNumber is a string or null
                 const validSeatNumber = seatNumber ? String(seatNumber) : null;
-
-                // Checking is seat number is already booked
-                const checkSeatNumber = await prisma.ticket.findFirst({
-                    where: {
-                        seatNumber: validSeatNumber,
-                        eventId: eventId,
+    
+                // Check if the seat number is already booked
+                if (validSeatNumber) {
+                    const checkSeatNumber = await prisma.ticket.findFirst({
+                        where: {
+                            seatNumber: validSeatNumber,
+                            eventId: eventId,
+                        },
+                    });
+    
+                    if (checkSeatNumber) {
+                        throw new Error("Seat already booked");
                     }
-                });
-
-                if (checkSeatNumber) {
-                    return res.status(400).json({ message: "Seat already booked"})
                 }
-            
-                // Creating new ticket in the database
+    
+                // Get the current max ticket number for the event
+                const lastTicket = await prisma.ticket.findFirst({
+                    where: { eventId: eventId },
+                    orderBy: { ticketNumber: "desc" },
+                });
+    
+                const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
+    
+                // Create the ticket and update available tickets atomically
                 const createdTicket = await prisma.ticket.create({
                     data: {
                         ticketNumber: ticketNumber,
@@ -84,24 +82,23 @@ class TicketController {
                         seatNumber: validSeatNumber,
                     },
                 });
-
-                console.log("Ticket created successfully:", createdTicket);
-
-                // Decrementing available tickets from event database
-                const updatedEvent = await prisma.event.update({
+    
+                // Decrement ticketsAvailable in the same transaction
+                await prisma.event.update({
                     where: { id: eventId },
-                    data: { ticketsAvailable: ticketsAvailable - 1 }
+                    data: { ticketsAvailable: ticketsAvailable - 1 },
                 });
-
-                console.log("updated event: ", updatedEvent);  
-                });
-
-                return res.redirect(`/events//ticket/${createdTicket.id}`);
-
-            } catch (error) {
-                console.error("Error creating ticket:", error);
-                return res.status(500).json({ message: "Internal server error while creating ticket" });
-            }
+    
+                return createdTicket;
+            });
+    
+            console.log("Ticket created successfully:", result);
+            return res.redirect(`/events/ticket/${result.id}`);
+            
+        } catch (error) {
+            console.error("Error creating ticket:", error.message);
+            return res.status(400).json({ message: error.message });
+        }
     }
         
     // Method to get formatted ticket details

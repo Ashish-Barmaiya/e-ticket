@@ -4,6 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./src/middlewares/error.Middleware.js";
 
 env.config();
 const app = express();
@@ -40,5 +41,7 @@ app.use("/events", eventRouter);
 // app.get("*", (req, res) => {
 //     res.status(404).send("ERROR 404!! PAGE NOT FOUND");
 // });
+
+app.use(errorHandler);
 
 export { app };
