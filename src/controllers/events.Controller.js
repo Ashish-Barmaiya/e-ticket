@@ -80,23 +80,28 @@ const newEvent = async (req, res) => {
     } = req.body;
 
     // Getting Host Id from session
-    const hostId = req.user.id;
+    const host = await prisma.hosts.findFirst({
+        where: { refreshToken: req.cookies.refreshToken }
+    });
 
     // Checking whether host has added venues or not
     const checkVenue = await prisma.venueInformation.findFirst({
-        where: { hostId }
+        where: { hostId: host.id }
     });
+
     // If there is no venue added by host, throw an error
     if (!checkVenue) {
         console.error("Cannot find any venue listed under this host. Host has not added any venue yet.");
         return res.status(400).json({ message: "You have not added any Venue. Add Venue before creating an event."})
     }
+
     // If venues has been added by the host, check further whether the venue chosen by host exits or not
     if (venue !== checkVenue.name) {
         // If venue does not match with the one chosen by the host, throw an error
         console.error("Venue does not match");
         return res.status(404).json({ message: "Venue does not match" });
     }
+
     // If venue matches, proceed further
     console.log(`Venue name provided by user matched venue name in database. Venue Name is ${venue}, Venue in database is ${checkVenue.name}. Venue id is ${checkVenue.id}`);
 
@@ -138,7 +143,7 @@ const newEvent = async (req, res) => {
                 ticketsAvailable: parseInt(totalTickets, 10),
                 price: parseFloat(price),
                 host: {
-                    connect: { id: hostId } // Connecting the event to the host
+                    connect: { id: host.id } // Connecting the event to the host
                 },
                 venueInformation: {
                     connect: { id: checkVenue.id } // Conncecting the event to the venue

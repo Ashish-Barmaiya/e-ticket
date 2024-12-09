@@ -5,10 +5,11 @@ import {
     loginUser,
     updateUserInfo,
     myTickets,
-    newRefreshToken,
+    // newRefreshToken,
     userChangePassword 
 } from "../controllers/user.Controllers.js";
 import {
+    validate,
     userRegisterValidator,
     userLoginValidator,
     userUpdateValidator,
@@ -42,7 +43,7 @@ router.get("/user-sign-in", (req, res) => {
 })
 
 // USER SIGN IN PAGE POST ROUTE //
-router.route("/user-sign-in").post(userLoginValidator, loginUser)
+router.route("/user-sign-in").post(validate(userLoginValidator), loginUser)
 
 // USER PROFILE PAGE GET ROUTE //
 router.get("/profile", userLoginAuth, (req, res) => {
@@ -73,7 +74,7 @@ router.get("/profile/user-change-password", userLoginAuth, (req, res) => {
 router.post("/profile/user-change-password", userLoginAuth, userChangePasswordValidator, userChangePassword)
 
 // USER NEW-REFRESH-TOKEN POST ROUTE //
-router.post("/refresh-token", newRefreshToken)
+// router.post("/refresh-token", newRefreshToken)
 
 // USER LOG OUT GET ROUTE //
 router.get("/user-sign-out", (req, res) => {

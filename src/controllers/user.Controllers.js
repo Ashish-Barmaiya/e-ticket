@@ -1,5 +1,7 @@
 import env from "dotenv";
 import bcrypt from "bcrypt";
+import { ApiError } from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js"
 import { PrismaClient } from "@prisma/client";
 import { validationResult } from "express-validator";
 import passport from "passport";
@@ -87,18 +89,12 @@ passport.use(
 );
 
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
-const loginUser = (req, res, next) => {
-    // Validating the request using express-validator
-    const validationErrors = validationResult(req);
-
-    if (!validationErrors.isEmpty()) {
-        return res.status(400).json({ errors: validationErrors.array() });
-    }
+const loginUser = asyncHandler(async (req, res, next) => {
     // Using Passport authenticate method with the local strategy
     passport.authenticate("local-user", async (err, user, info) => {
 
-        if (err) return next(err);
-        if(!user) return res.redirect("/user/user-sign-in?error=" + info.message);
+        if (err) throw new ApiError(500, "Authentication error", err);
+        if(!user) throw new ApiError(401, info.message || "Authentication failed");
 
         // Generate tokens
         const accessToken = generateAccessToken(user);
@@ -108,71 +104,75 @@ const loginUser = (req, res, next) => {
         await prisma.user.update({
             where: { id: user.id },
             data: { refreshToken }
+        }).catch(error => {
+            throw new ApiError(500, "Error updating refresh token", error)
         });
 
         // Send token in cookies
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict"
         });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict"
         });
 
         // Redirect to profile page
         res.redirect("/user/profile");
     })(req, res, next);
-}
+});
 
 // NEW REFRESH TOKEN //
-const newRefreshToken = async (req, res) => {
-    const refreshToken = req.cookies.refreshToken;
+// const newRefreshToken = async (req, res) => {
+//     const refreshToken = req.cookies.refreshToken;
 
-    if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
+//     if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
 
-    try {
-        // Find user with refresh token
-        const user = await prisma.user.findFirst({
-            where: { refreshToken: refreshToken}
-        });
+//     try {
+//         // Find user with refresh token
+//         const user = await prisma.user.findFirst({
+//             where: { refreshToken: refreshToken}
+//         });
 
-        if (!user) return res.status(401).json({ message: "Invalid refresh token" });
+//         if (!user) return res.status(401).json({ message: "Invalid refresh token" });
 
-        // Verify refresh token
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+//         // Verify refresh token
+//         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         
-        // Update tokens
-        const updateAccessToken = generateAccessToken(user);
-        const updateRefreshToken = generateRefreshToken(user);
+//         // Update tokens
+//         const updateAccessToken = generateAccessToken(user);
+//         const updateRefreshToken = generateRefreshToken(user);
 
-        // Update refresh token in database
-        await prisma.user.update({
-            where: { id: user.id},
-            data: { refreshToken: updateRefreshToken }
-        });
+//         // Update refresh token in database
+//         await prisma.user.update({
+//             where: { id: user.id},
+//             data: { refreshToken: updateRefreshToken }
+//         });
 
-        // Set new cookies
-        res.cookie("accessToken", updateAccessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
-        });
+//         // Set new cookies
+//         res.cookie("accessToken", updateAccessToken, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === "production"
+//         });
 
-        res.cookie("refreshToken", updateRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
-        });
+//         res.cookie("refreshToken", updateRefreshToken, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === "production"
+//         });
 
-        res.status(200).json({ message: "Tokens refreshed successfully"});
+//         res.status(200).json({ message: "Tokens refreshed successfully"});
 
-    } catch (error) {
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
-        console.log("Error generating new refresh token for user: ", error);
-        return res.status(401).json({ message: "Invalid refresh token" });
-    }
-}
+//     } catch (error) {
+//         res.clearCookie("accessToken");
+//         res.clearCookie("refreshToken");
+//         console.log("Error generating new refresh token for user: ", error);
+//         return res.status(401).json({ message: "Invalid refresh token" });
+//     }
+// }
 
 // UPDATE USER INFO //
 const updateUserInfo = async (req, res) => {
@@ -345,6 +345,6 @@ export {
     loginUser,
     updateUserInfo,
     myTickets,
-    newRefreshToken,
+    // newRefreshToken,
     userChangePassword
 }

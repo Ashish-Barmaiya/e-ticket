@@ -1,6 +1,27 @@
-import  { check } from "express-validator";
+import  { check, validationResult } from "express-validator";
 
-/// HOST REGISTRATION VALIDATION ///
+// CUSTOM VALIDATION MIDDLEWARE //
+export const validate = (validations) => {
+       return async (req, res, next) => {
+              await Promise.all(validations.map(validation => validation.run(req)));
+
+              const errors = validationResult(req);
+              if (errors.isEmpty()) {
+                     return next();
+              }
+
+              return res.status(400).json({
+                     success: false,
+                     message: "Validation Error",
+                     errors: errors.array().map(err => ({
+                            field: err.param,
+                            message: err.msg
+                     }))
+              });
+       }
+}
+
+// HOST REGISTRATION VALIDATION //
 const hostRegisterValidator = [ 
     check("name")
          .trim()
@@ -61,7 +82,7 @@ const userLoginValidator = [
      check("email")
           .trim()
           .notEmpty().withMessage("Email is required")
-          .isEmail().withMessage("Invalid email address")
+          .isEmail().withMessage("Invalid email format")
           .normalizeEmail(), 
      check("password")
           .trim()
@@ -176,4 +197,4 @@ export {
      newEventValidator,
      userChangePasswordValidator,
      hostChangePasswordValidator
- }
+}
