@@ -23,6 +23,7 @@
             <p>Ticket Number: <%= allTickets.ticketNumber %></p>
             <p>Seat Number: <%= allTickets.seatNumber %></p>
             <p>Price: <%= allTickets.price %></p>
+            <a href="/user/profile/my-tickets/cancel-ticket/<%= allTickets.id %>">Cancel Ticket</a>
             <hr>
        <% }) %>
     <% } %>

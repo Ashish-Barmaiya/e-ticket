@@ -15,8 +15,11 @@ import {
     userUpdateValidator,
     userChangePasswordValidator 
 } from "../utils/validators.js";
+import TicketController from "../controllers/tickets.Controller.js";
+import { PrismaClient } from "@prisma/client";
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
 // USER PAGE GET ROUTE //
 router.get("/", (req, res) => {
@@ -36,9 +39,12 @@ router.get("/user-sign-up", (req, res) => {
 router.route("/user-sign-up").post(userRegisterValidator, registerUser)
 
 // USER SIGN IN PAGE GET ROUTE //
-router.get("/user-sign-in", (req, res) => {
+router.get("/user-sign-in", async (req, res) => {
+    const user = await prisma.user.findFirst({
+        where: { refreshToken: req.cookies.refreshToken }
+    }) 
     res.render("userPages/userSignIn", {
-        user: req.user
+        user
     })
 })
 
@@ -46,10 +52,13 @@ router.get("/user-sign-in", (req, res) => {
 router.route("/user-sign-in").post(validate(userLoginValidator), loginUser)
 
 // USER PROFILE PAGE GET ROUTE //
-router.get("/profile", userLoginAuth, (req, res) => {
-        res.render("userPages/userProfile", {
-            user: req.user
-        });
+router.get("/profile", userLoginAuth, async (req, res) => {
+    const user = await prisma.user.findFirst({
+        where: { refreshToken: req.cookies.refreshToken }
+    }) 
+    res.render("userPages/userProfile", {
+        user
+    });
 });
 
 // USER EDIT PROFILE GET ROUTE //
@@ -64,6 +73,20 @@ router.post("/profile/edit-profile", userLoginAuth, userUpdateValidator, updateU
 
 // USER MY-TICKETS GET ROUTE //
 router.get("/profile/my-tickets", userLoginAuth, myTickets);
+
+// USER CANCEL TICKET GET ROUTE //
+router.get("/profile/my-tickets/cancel-ticket/:ticketId", userLoginAuth, async (req, res) => {
+    const ticket =  await prisma.ticket.findUnique({
+        where: { id: req.params.ticketId }
+    })
+    res.render("userPages/userCancelTicket", {
+        ticket
+    });
+})
+
+// USER CANCEL TICKET POST ROUTE //
+router.post("/profile/my-tickets/cancel-ticket/:ticketId", userLoginAuth, TicketController.cancelTicket)
+
 
 // USER CHANGE PASSWORD GET ROUTE //
 router.get("/profile/user-change-password", userLoginAuth, (req, res) => {

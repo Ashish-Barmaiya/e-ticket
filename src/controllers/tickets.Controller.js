@@ -11,7 +11,7 @@ class TicketController {
         this.seatNumber = seatNumber;
     }
 
-    // Method to buy a ticket (generate a new ticket)
+    // METHOD TO BUY A TICKET (GENERATE A TICKET) //
     static async buyTicket(req, res) {
         try {
             // Get user using refreshToken
@@ -34,6 +34,7 @@ class TicketController {
                     select: {
                         price: true,
                         ticketsAvailable: true,
+                        seatsAvailable: true,
                     },
                 });
     
@@ -41,7 +42,7 @@ class TicketController {
                     throw new Error("Event not found");
                 }
     
-                let { ticketsAvailable, price } = event;
+                let { ticketsAvailable, price, seatsAvailable } = event;
     
                 if (ticketsAvailable === 0) {
                     throw new Error("Tickets sold out.");
@@ -51,17 +52,8 @@ class TicketController {
                 const validSeatNumber = seatNumber ? String(seatNumber) : null;
     
                 // Check if the seat number is already booked
-                if (validSeatNumber) {
-                    const checkSeatNumber = await prisma.ticket.findFirst({
-                        where: {
-                            seatNumber: validSeatNumber,
-                            eventId: eventId,
-                        },
-                    });
-    
-                    if (checkSeatNumber) {
-                        throw new Error("Seat already booked");
-                    }
+                if (!validSeatNumber || !seatsAvailable.includes(validSeatNumber)) {
+                    throw new Error("Seat already booked or not available");
                 }
     
                 // Get the current max ticket number for the event
@@ -71,8 +63,11 @@ class TicketController {
                 });
     
                 const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
-    
-                // Create the ticket and update available tickets atomically
+
+                // Update seatsAvailable array removing booked seat number
+                const updatedSeatsAvailable = seatsAvailable.filter(seat => seat !== validSeatNumber)
+
+                // Create the ticket
                 const createdTicket = await prisma.ticket.create({
                     data: {
                         ticketNumber: ticketNumber,
@@ -83,10 +78,13 @@ class TicketController {
                     },
                 });
     
-                // Decrement ticketsAvailable in the same transaction
+                // Update ticketsAvailable and seatsAvailable
                 await prisma.event.update({
                     where: { id: eventId },
-                    data: { ticketsAvailable: ticketsAvailable - 1 },
+                    data: { 
+                        ticketsAvailable: ticketsAvailable - 1,
+                        seatsAvailable: updatedSeatsAvailable,
+                    },
                 });
     
                 return createdTicket;
@@ -101,7 +99,7 @@ class TicketController {
         }
     }
         
-    // Method to get formatted ticket details
+    // METHOD TO PRINT BOOKED TICKET DETAILS //
     static async printTicketDetails(req, res) {
         const { ticketId } = req.params;
         console.log("ticket ID: ", ticketId);
@@ -161,6 +159,88 @@ class TicketController {
             console.error("Error retrieving ticket details:", error);
             return res.status(500).json({ message: "Internal server error while retrieving ticket details" });
         }
+    }
+
+    // METHOD TO CANCEL TICKET //
+    static async cancelTicket (req, res) { 
+        try {
+            // Identify which ticket to cancel through req (figure out how to do this)
+            const { ticketId } = req.params;
+            const { email, reason } = req.body;
+
+            // Get user using cookies
+            const user = await prisma.user.findFirst({
+            where: { refreshToken: req.cookies.refreshToken }
+            });
+
+            if (!user) {
+                 return res.status(401).json({ message: "User not signed in" });
+            }
+
+            if (email !== user.email) {
+                return res.status(400).json({ message: "Email does not match" });
+            }
+            
+            const result = await prisma.$transaction (async (prisma) => {
+                // Fetch ticket with event details
+                const ticket = await prisma.ticket.findUnique({
+                    where: { id : ticketId },
+                    include: { event: true } 
+                });
+
+                if (!ticket) {
+                    throw new Error ("Ticket not found");
+                }
+
+                // Check if ticket has already been cancelled
+                if (ticket.status === "cancelled") {
+                    throw new Error("Ticket is already cancelled");
+                }
+
+                // create new record in ticketCancellations table
+                await prisma.ticketCancellations.create({
+                    data: {
+                        ticketId: ticket.id,
+                        userId: ticket.userId,
+                        eventId: ticket.eventId,
+                        seatsCancelled: ticket.seatNumber,
+                        canceledAt: new Date(),
+                        reason: reason || null,
+                        refund: ticket.event.price || null,
+                    },
+                });
+
+                // Update ticket status
+                await prisma.ticket.update({
+                    where: { id: ticketId },
+                    data: {
+                        status: "cancelled",
+                        canceledAt: new Date(),
+                    },
+                });
+
+                // Update event table adding above updated values
+                await prisma.event.update({
+                    where: { id: ticket.event.id },
+                    data: {
+                        seatsAvailable: { push: ticket.seatNumber },
+                        ticketsAvailable: { increment: 1 },
+                    }
+                });
+
+                return { ticketId: ticket.id, eventId: ticket.event.id }
+
+            });
+
+            return res.status(200).json({
+                message: "Ticket successfully cancelled",
+                result,
+            })
+
+        } catch (error) {
+            console.log("Error cancelling ticket: ", error.message);
+            return res.status(500).json({ message: error.message});
+        }  
     }
 }
 

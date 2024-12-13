@@ -249,10 +249,19 @@ const updateUserInfo = async (req, res) => {
 // USER MY-TICKETS //
 const myTickets = async(req, res) => {
 
+    const user = await prisma.user.findFirst({
+        where: { refreshToken: req.cookies.refreshToken }
+    });
+
     try {
         // Get all tickets booked by user
         const allTickets = await prisma.ticket.findMany({
-            where: { userId : req.user.id},
+            where: {
+                AND: [
+                    { userId : user.id },
+                    { status: "Active" },
+                ],
+            },
             include: { 
                 event: {
                     select: {

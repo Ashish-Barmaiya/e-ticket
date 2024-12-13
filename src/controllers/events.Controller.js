@@ -79,7 +79,7 @@ const newEvent = async (req, res) => {
         price 
     } = req.body;
 
-    // Getting Host Id from session
+    // Getting Host Id using cookies
     const host = await prisma.hosts.findFirst({
         where: { refreshToken: req.cookies.refreshToken }
     });
@@ -130,6 +130,19 @@ const newEvent = async (req, res) => {
             console.error("Event already exists:", existingEvent);
             return res.status(400).json({ message: "Event already exists at the same venue at the same date and time" });
         }
+
+        // Function to convert totalTickets into individual seat numbers
+        async function convertTicketToSeat(totalTickets) {
+            const seatsAvailable = [];
+
+            for (let i = 1; i <= totalTickets; i++) {
+                seatsAvailable.push(i.toString());
+            }
+
+            return seatsAvailable;
+        }
+        const seatsAvailable = await convertTicketToSeat(totalTickets);
+
         // If not, proceed to create a new event
         const createNewEvent = await prisma.event.create({
             data: {
@@ -142,6 +155,7 @@ const newEvent = async (req, res) => {
                 endTime: eventEndTime, // Using the parsed end time
                 ticketsAvailable: parseInt(totalTickets, 10),
                 price: parseFloat(price),
+                seatsAvailable,
                 host: {
                     connect: { id: host.id } // Connecting the event to the host
                 },

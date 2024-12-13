@@ -149,19 +149,20 @@ model HostTeamManagement {
 
 // USER MODEL
 model User {
-  id             String        @id @default(uuid())
-  email          String        @unique
-  password       String
-  fullName       String
-  phone          String        @unique
-  dateOfBirth    DateTime?
-  profilePicture String?
-  gender         String?
-  refreshToken   String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  addresses      UserAddress[]
-  tickets        Ticket[]
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  password            String
+  fullName            String
+  phone               String                @unique
+  dateOfBirth         DateTime?
+  profilePicture      String?
+  gender              String?
+  refreshToken        String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  addresses           UserAddress[]
+  tickets             Ticket[]
+  TicketCancellations TicketCancellations[]
 }
 
 // USER ADDRESS MODEL
@@ -179,35 +180,59 @@ model UserAddress {
 
 // TICKET MODEL
 model Ticket {
-  id           String   @id @default(uuid())
-  ticketNumber Int      @default(autoincrement())
+  id           String               @id @default(uuid())
+  ticketNumber Int                  @default(autoincrement())
   userId       String
-  eventId      Int // References to Event table
+  eventId      Int
   price        Float
   seatNumber   String?
-  createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id])
-  event        Event    @relation(fields: [eventId], references: [id])
+  createdAt    DateTime             @default(now())
+  status       String               @default("Active") // New Field
+  canceledAt   DateTime? // New Field
+  cancellation TicketCancellations? // New Relation
+  user         User                 @relation(fields: [userId], references: [id])
+  event        Event                @relation(fields: [eventId], references: [id])
+
+  @@index([userId])
+  @@index([eventId])
+}
+
+model TicketCancellations {
+  id             String   @id @default(uuid())
+  ticketId       String   @unique
+  userId         String
+  eventId        Int
+  seatsCancelled String
+  canceledAt     DateTime @default(now())
+  reason         String?
+  refund         Float?
+  ticket         Ticket   @relation(fields: [ticketId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
+  event          Event    @relation(fields: [eventId], references: [id])
+
+  @@index([canceledAt])
 }
 
 /// EVENT MODEL ///
 model Event {
-  id               Int               @id @default(autoincrement())
-  title            String
-  description      String?
-  poster           String?
-  artist           String?
-  date             DateTime
-  startTime        DateTime
-  endTime          DateTime?
-  hostId           String // References the Hosts table
-  venueId          String // References the VenueInformation table
-  ticketsAvailable Int
-  price            Float // Ticket price per person
-  status           String            @default("Scheduled") // e.g., Scheduled, Canceled
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  host             Hosts             @relation(fields: [hostId], references: [id])
-  venueInformation VenueInformation? @relation(fields: [venueId], references: [id])
-  ticket           Ticket[] // Relation to tickets sold for this event
+  id                  Int                   @id @default(autoincrement())
+  title               String
+  description         String?
+  poster              String?
+  artist              String?
+  date                DateTime
+  startTime           DateTime
+  endTime             DateTime?
+  hostId              String // References the Hosts table
+  venueId             String // References the VenueInformation table
+  ticketsAvailable    Int
+  seatsAvailable      String[] // Newly added
+  price               Float // Ticket price per person
+  status              String                @default("Scheduled") // e.g., Scheduled, Canceled
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  host                Hosts                 @relation(fields: [hostId], references: [id])
+  venueInformation    VenueInformation?     @relation(fields: [venueId], references: [id])
+  ticket              Ticket[] // Relation to tickets sold for this event
+  TicketCancellations TicketCancellations[]
 }
