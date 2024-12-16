@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { PrismaClient } from "@prisma/client";
-import { validationResult } from "express-validator";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
@@ -14,15 +13,7 @@ const prisma = new PrismaClient();
 
 /// USER SIGN UP ///
 const registerUser = async(req, res) => {
-
-    // Validating the request using express-validator
-    const validationErrors = validationResult(req);
-    
-    if (!validationErrors.isEmpty()) {
-        console.log("Error validating data:");
-        return res.status(400).json({ errors: validationErrors.array()} );
-    }
-    // Accessing validated data
+    // Accessing data
     const { name, email, phoneNumber, password } = req.body;
 
     try {
@@ -93,8 +84,12 @@ const loginUser = asyncHandler(async (req, res, next) => {
     // Using Passport authenticate method with the local strategy
     passport.authenticate("local-user", async (err, user, info) => {
 
-        if (err) throw new ApiError(500, "Authentication error", err);
-        if(!user) throw new ApiError(401, info.message || "Authentication failed");
+        if (err) {
+            return next(new ApiError(401, "Authentication failed"));
+        }
+        if(!user) {
+            return next(new ApiError(401, "Authentication failed"));
+        }
 
         // Generate tokens
         const accessToken = generateAccessToken(user);
@@ -126,64 +121,10 @@ const loginUser = asyncHandler(async (req, res, next) => {
     })(req, res, next);
 });
 
-// NEW REFRESH TOKEN //
-// const newRefreshToken = async (req, res) => {
-//     const refreshToken = req.cookies.refreshToken;
-
-//     if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
-
-//     try {
-//         // Find user with refresh token
-//         const user = await prisma.user.findFirst({
-//             where: { refreshToken: refreshToken}
-//         });
-
-//         if (!user) return res.status(401).json({ message: "Invalid refresh token" });
-
-//         // Verify refresh token
-//         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        
-//         // Update tokens
-//         const updateAccessToken = generateAccessToken(user);
-//         const updateRefreshToken = generateRefreshToken(user);
-
-//         // Update refresh token in database
-//         await prisma.user.update({
-//             where: { id: user.id},
-//             data: { refreshToken: updateRefreshToken }
-//         });
-
-//         // Set new cookies
-//         res.cookie("accessToken", updateAccessToken, {
-//             httpOnly: true,
-//             secure: process.env.NODE_ENV === "production"
-//         });
-
-//         res.cookie("refreshToken", updateRefreshToken, {
-//             httpOnly: true,
-//             secure: process.env.NODE_ENV === "production"
-//         });
-
-//         res.status(200).json({ message: "Tokens refreshed successfully"});
-
-//     } catch (error) {
-//         res.clearCookie("accessToken");
-//         res.clearCookie("refreshToken");
-//         console.log("Error generating new refresh token for user: ", error);
-//         return res.status(401).json({ message: "Invalid refresh token" });
-//     }
-// }
-
 // UPDATE USER INFO //
 const updateUserInfo = async (req, res) => {
     try {
-        // Validate and sanitize incoming data
-        const validationErrors = validationResult(req);
-        if (!validationErrors.isEmpty()) {
-            console.log("Error validating data:");
-            return res.status(400).json({ errors: validationErrors.array() });
-        }
-        // Get data from request //
+        // Get data from request
         const { fullName, dateOfBirth, gender, areaPincode, addressLine1, addressLine2, landmark, state, country } = req.body;
 
         // Getting user through refreshToken
@@ -294,13 +235,6 @@ const myTickets = async(req, res) => {
 
 // USER CHANGE PASSWORD //
 const userChangePassword = async (req, res) =>{
-    // Validate data using express-validator
-    const validationErrors = validationResult(req);
-
-    if (!validationErrors.isEmpty()) {
-        console.log("Error validating data:");
-        return res.status(400).json({ errors: validationErrors.array()} );
-    }
     // Get data from request
     const { email, oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -354,6 +288,5 @@ export {
     loginUser,
     updateUserInfo,
     myTickets,
-    // newRefreshToken,
     userChangePassword
 }

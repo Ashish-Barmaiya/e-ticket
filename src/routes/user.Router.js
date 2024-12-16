@@ -5,7 +5,6 @@ import {
     loginUser,
     updateUserInfo,
     myTickets,
-    // newRefreshToken,
     userChangePassword 
 } from "../controllers/user.Controllers.js";
 import {
@@ -36,7 +35,7 @@ router.get("/user-sign-up", (req, res) => {
 })
 
 // USER SIGN UP PAGE POST ROUTE //
-router.route("/user-sign-up").post(userRegisterValidator, registerUser)
+router.route("/user-sign-up").post(validate(userRegisterValidator), registerUser)
 
 // USER SIGN IN PAGE GET ROUTE //
 router.get("/user-sign-in", async (req, res) => {
@@ -69,7 +68,7 @@ router.get("/profile/edit-profile", userLoginAuth, (req, res) => {
     })
 
 // USER EDIT PROFILE POST ROUTE //
-router.post("/profile/edit-profile", userLoginAuth, userUpdateValidator, updateUserInfo)
+router.post("/profile/edit-profile", userLoginAuth, validate(userUpdateValidator), updateUserInfo)
 
 // USER MY-TICKETS GET ROUTE //
 router.get("/profile/my-tickets", userLoginAuth, myTickets);
@@ -94,10 +93,7 @@ router.get("/profile/user-change-password", userLoginAuth, (req, res) => {
 });
 
 // USER CHANGE PASSWORD POST ROUTE //
-router.post("/profile/user-change-password", userLoginAuth, userChangePasswordValidator, userChangePassword)
-
-// USER NEW-REFRESH-TOKEN POST ROUTE //
-// router.post("/refresh-token", newRefreshToken)
+router.post("/profile/user-change-password", userLoginAuth, validate(userChangePasswordValidator), userChangePassword)
 
 // USER LOG OUT GET ROUTE //
 router.get("/user-sign-out", (req, res) => {

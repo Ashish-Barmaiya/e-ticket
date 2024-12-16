@@ -21,6 +21,7 @@ export const validate = (validations) => {
        }
 }
 
+
 // HOST REGISTRATION VALIDATION //
 const hostRegisterValidator = [ 
     check("name")

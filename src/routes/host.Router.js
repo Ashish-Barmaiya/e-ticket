@@ -6,16 +6,16 @@ import {
     registerHost,
     loginHost,
     addVenue,
-    // newRefreshToken,
     hostChangePassword 
 } from "../controllers/host.Controller.js";
 import {
+    validate,
     hostRegisterValidator,
     hostLoginValidator,
-    hostChangePasswordValidator
+    hostChangePasswordValidator,
+    newEventValidator
 } from "../utils/validators.js";
 import { hostLoginAuth } from "../middlewares/auth.middleware.js";
-import { newEventValidator } from "../utils/validators.js";
 import { newEvent } from "../controllers/events.Controller.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -43,7 +43,7 @@ router.get("/hostregister", (req, res) => {
 });
 
 // HOST REGISTRATION PAGE POST ROUTE //
-router.post("/hostregister", hostRegisterValidator, registerHost);
+router.post("/hostregister", validate(hostRegisterValidator), registerHost);
 
 // HOST LOGIN PAGE GET ROUTE //
 router.get("/hostlogin", (req, res) => {
@@ -51,7 +51,7 @@ router.get("/hostlogin", (req, res) => {
 });
 
 // HOST LOGIN PAGE POST ROUTE //
-router.route("/hostlogin").post(hostLoginValidator, loginHost);
+router.route("/hostlogin").post(validate(hostLoginValidator), loginHost);
 
 // HOST DASHBOARD GET ROUTE //
 router.get("/dashboard", hostLoginAuth, (req, res) => {
@@ -102,7 +102,7 @@ router.get("/dashboard/list-new-events", hostLoginAuth, (req, res) => {
 });
 
 // LIST NEW EVENT POST ROUTE //
-router.post("/dashboard/list-new-events", hostLoginAuth, newEventValidator, newEvent);
+router.post("/dashboard/list-new-events", hostLoginAuth, validate(newEventValidator), newEvent);
 
 // RESCHEDULE EVENT GET ROUTE //
 router.get("/dashboard/reschedule-events", hostLoginAuth, (req, res) => {
@@ -120,10 +120,7 @@ router.get("/dashboard/host-change-password", hostLoginAuth, (req, res) => {
 });
 
 // HOST CHANGE-PASSWORD POST ROUTE //
-router.post("/dashboard/host-change-password", hostLoginAuth, hostChangePasswordValidator, hostChangePassword)
-
-// HOST NEW-REFRESH-TOKEN POST ROUTE //
-// router.post("/refresh-token", newRefreshToken);
+router.post("/dashboard/host-change-password", hostLoginAuth, validate(hostChangePasswordValidator), hostChangePassword);
 
 // HOST LOGOUT  GET ROUTE //
 router.get("/hostlogout", (req, res) => {

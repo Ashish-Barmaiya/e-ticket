@@ -1,7 +1,6 @@
 import env from "dotenv"
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
-import { validationResult } from "express-validator";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
@@ -12,13 +11,7 @@ const prisma = new PrismaClient();
 
 // HOST REGISTER //
 const registerHost = async (req, res) => {
-    // Validating the request using express-validator
-    const validationErrors = validationResult(req);
-
-    if (!validationErrors.isEmpty()) {
-        return res.status(400).json({ errors: validationErrors.array() });
-    }
-    // Accessing validated data
+    // Accessing data
     const { name, email, phoneNumber, password } = req.body;
     
     try {
@@ -90,12 +83,6 @@ passport.use(
   
 // LOGIN FUNCTION INVOKING THE LOCAL STRATEGY //
 const loginHost = (req, res, next) => {
-  // Validating the request using express-validator
-  const validationErrors = validationResult(req);
-  
-  if (!validationErrors.isEmpty()) {
-    return res.status(400).json({ errors: validationErrors.array() });
-  }
   // Using Passport authenticate method with the local strategy
   passport.authenticate("local-host", async (err, user, info) => {
   
@@ -128,58 +115,8 @@ const loginHost = (req, res, next) => {
   })(req, res, next);
 }
 
-// NEW REFRESH TOKEN//
-// const newRefreshToken = async (req, res) => {
-//   const refreshToken = req.cookie.refreshToken;
-
-//   if (!refreshToken) return res.status(401).json({ message: "Refresh token missing" });
-
-//   try {
-//     // Find host with refresh token
-//     const host = await prisma.hosts.findFirst({
-//       where: { refreshToken: refreshToken}
-//     });
-
-//     if (!host) return res.status(401).json({ message: "Invalid refresh token" });
-
-//     // Verify refresh token
-//     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
-//     // Update tokens
-//     const updateAccessToken = generateAccessToken(user);
-//     const updateRefreshToken = generateRefreshToken(user);
-
-//     // Update refresh token in database
-//     await prisma.hosts.update({
-//       where: { id: host.id },
-//       data: { refreshToken: refreshToken }
-//     });
-
-//     // Set new cookies
-//     res.cookie("accessToken", updateAccessToken, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production"
-//     });
-
-//     res.cookie("refreshToken", updateRefreshToken, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production"
-//     });
-
-//     res.status(200).json({ message: "Tokens refreshed successfully" });
-
-//   } catch (error) {
-//     res.clearCookie("accessToken");
-//     res.clearCookie("refreshToken");
-//     console.log("Error generating new refresh token for host: ", error);
-//     return res.status(401).json({ message: "Invalid refresh token" });
-//   }
-// }
-
 // ADD VENUE //
 const addVenue = async(req, res) => {
-  // Validate and Sanitize data
-
   // Get Data from request
   const { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType } = req.body;
   console.log("Data Fetched:", { name, address, seatingCapacity, seatingCategories, seatingLayout, venueType });
@@ -227,13 +164,6 @@ const addVenue = async(req, res) => {
 
 // HOST CHANGE PASSWORD //
 const hostChangePassword = async (req, res) => {
-  // Validate and Sanitize data
-  const validationErrors = validationResult(req);
-
-  if (!validationErrors.isEmpty()) {
-    console.log("Error validating data:");
-    return res.status(400).json({ errors: validationErrors.array()} );
-  }
   // Get data from request
   const { email, oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -287,6 +217,5 @@ export {
   registerHost,
   loginHost,
   addVenue,
-  // newRefreshToken,
   hostChangePassword
 }
