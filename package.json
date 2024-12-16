@@ -2,19 +2,26 @@
   "name": "e-ticket",
   "version": "1.0.0",
   "description": "e-ticket web app.",
-  "main": "src/index.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "author": "Ashish Barmaiya",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
-    "prisma": "^5.21.1"
+    "prisma": "^5.21.1",
+    "supertest": "^7.0.0"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
