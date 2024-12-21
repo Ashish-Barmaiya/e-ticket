@@ -1,10 +1,20 @@
 // tests/setup.js
-import { PrismaClient } from "@prisma/client";
+const { PrismaClient } = require("@prisma/client");
 import env from "dotenv";
 
 env.config({ path: ".env.test" });
 
-const prisma = new PrismaClient();
+if(process.env.NODE_ENV !== "test") {
+    throw new Error("Test suite must be run in test environment");
+}
+
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_url
+        }
+    }
+});
 
 // Clean up database before tests //
 beforeAll(async () => {

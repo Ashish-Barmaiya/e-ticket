@@ -51,7 +51,7 @@ router.get("/user-sign-in", async (req, res) => {
 router.route("/user-sign-in").post(validate(userLoginValidator), loginUser)
 
 // USER PROFILE PAGE GET ROUTE //
-router.get("/profile", userLoginAuth, async (req, res) => {
+router.get("/profile", userLoginAuth, async(req, res) => {
     const user = await prisma.user.findFirst({
         where: { refreshToken: req.cookies.refreshToken }
     }) 
@@ -61,11 +61,15 @@ router.get("/profile", userLoginAuth, async (req, res) => {
 });
 
 // USER EDIT PROFILE GET ROUTE //
-router.get("/profile/edit-profile", userLoginAuth, (req, res) => {
-        res.render("userPages/userEditProfile", {
-            user: req.user,
-        })
+router.get("/profile/edit-profile", userLoginAuth, async(req, res) => {
+    const user = await prisma.user.findFirst({
+        where: { refreshToken: req.cookies.refreshToken },
+        include: { addresses: true } 
     })
+    res.render("userPages/userEditProfile", {
+        user
+    })
+})
 
 // USER EDIT PROFILE POST ROUTE //
 router.post("/profile/edit-profile", userLoginAuth, validate(userUpdateValidator), updateUserInfo)
