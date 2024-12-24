@@ -2,7 +2,6 @@ import express from "express";
 import env from "dotenv";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./src/middlewares/error.Middleware.js";
 
@@ -10,22 +9,32 @@ env.config();
 const app = express();
 
 app.use(cookieParser());
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.CORS_ORIGIN,
-    credentials: true
-}));
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended : true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// const __filename = fileURLToPath(import.meta.url);
+// let __filename, __dirname;
 
-const __filename = process.env.NODE_ENV === 'test' 
-    ? path.resolve('./app.js')
-    : fileURLToPath(import.meta.url);
+// // Conditional setup for __filename and __dirname
+// if (process.env.NODE_ENV === "test") {
+//   // Fallback for Jest (mocked setup for tests)
+//   __filename = path.resolve("./app.js");
+//   __dirname = path.dirname(__filename);
+// } else {
+//   // Production setup
+//   __filename = fileURLToPath(import.meta.url);
+//   __dirname = path.dirname(__filename);
+// }
 
-const __dirname = path.dirname(__filename); 
+const __filename = path.resolve("./app.js");
+const __dirname = path.dirname(__filename);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));
@@ -41,7 +50,6 @@ app.use("/", homePageRouter);
 app.use("/host", hostRouter);
 app.use("/user", userRouter);
 app.use("/events", eventRouter);
-
 
 // app.get("*", (req, res) => {
 //     res.status(404).send("ERROR 404!! PAGE NOT FOUND");
