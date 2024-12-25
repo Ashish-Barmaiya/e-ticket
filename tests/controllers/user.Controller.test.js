@@ -3,7 +3,6 @@ import request from "supertest";
 import { app } from "../../app.js";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -108,8 +107,8 @@ describe("User Authentication", () => {
   });
 });
 
-// USER-CHANGE-PASSWORD TEST //
-describe("POST /user/profile/user-change-password (Protected Route)", () => {
+// USER-PROTECTED-ROUTES TESTS //
+describe("User Protected Routes", () => {
   let user;
   let accessToken;
   let refreshToken;
@@ -144,94 +143,125 @@ describe("POST /user/profile/user-change-password (Protected Route)", () => {
     await prisma.user.deleteMany();
   });
 
-  it("should successfully change-password with correct inputs", async () => {
-    const response = await request(app)
-      .post("/user/profile/user-change-password")
-      .set("Cookie", [
-        `accessToken=${accessToken}`,
-        `refreshToken=${refreshToken}`,
-      ])
-      .send({
-        email: testUser.email,
-        oldPassword: testUser.password,
-        newPassword: "newpassword123",
-        confirmPassword: "newpassword123",
+  // USER-CHANGE-PASSWORD TEST //
+  describe("POST /user/profile/user-change-password", () => {
+    it("should successfully change-password with correct inputs", async () => {
+      const response = await request(app)
+        .post("/user/profile/user-change-password")
+        .set("Cookie", [
+          `accessToken=${accessToken}`,
+          `refreshToken=${refreshToken}`,
+        ])
+        .send({
+          email: testUser.email,
+          oldPassword: testUser.password,
+          newPassword: "newpassword123",
+          confirmPassword: "newpassword123",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain("Password changed successfully");
+
+      // Verify password change
+      const updatedUser = await prisma.user.findUnique({
+        where: { email: testUser.email },
       });
-
-    expect(response.status).toBe(200);
-    expect(response.body.message).toContain("Password changed successfully");
-
-    // Verify password change
-    const updatedUser = await prisma.user.findUnique({
-      where: { email: testUser.email },
+      const isNewPasswordValid = await bcrypt.compare(
+        "newpassword123",
+        updatedUser.password,
+      );
+      expect(isNewPasswordValid).toBe(true);
     });
-    const isNewPasswordValid = await bcrypt.compare(
-      "newpassword123",
-      updatedUser.password,
-    );
-    expect(isNewPasswordValid).toBe(true);
+
+    it("should fail to change password with incorrect oldPassword", async () => {
+      const response = await request(app)
+        .post("/user/profile/user-change-password")
+        .set("Cookie", [
+          `accessToken=${accessToken}`,
+          `refreshToken=${refreshToken}`,
+        ]) // Pass JWT in the header
+        .send({
+          oldPassword: "wrongpassword",
+          newPassword: "newpassword123",
+          confirmPassword: "newpassword123",
+        })
+        .redirects(0);
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Validation Error");
+    });
+
+    it("should fail to change password if newPassword and confirmPassword does not match", async () => {
+      const response = await request(app)
+        .post("/user/profile/user-change-password")
+        .set("Cookie", [
+          `accessToken=${accessToken}`,
+          `refreshToken=${refreshToken}`,
+        ])
+        .send({
+          oldPassword: testUser.password,
+          newPassword: "newpassword123",
+          confirmPassword: "somethingdifferent321",
+        })
+        .redirects(0);
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain("Validation Error");
+    });
+
+    it("should fail with an invalid token", async () => {
+      const response = await request(app)
+        .post("/user/profile/user-change-password")
+        .set("Authorization", "Bearer invalidToken")
+        .send({
+          oldPassword: testUser.password,
+          newPassword: "newpassword123",
+          confirmPassword: "newpassword123",
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Authorization token is missing");
+    });
+
+    it("should fail without a token", async () => {
+      const response = await request(app)
+        .post("/user/profile/user-change-password")
+        .send({
+          oldPassword: testUser.password,
+          newPassword: "newpassword123",
+          confirmPassword: "newpassword123",
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Authorization token is missing");
+    });
   });
 
-  it("should fail to change password with incorrect oldPassword", async () => {
-    const response = await request(app)
-      .post("/user/profile/user-change-password")
-      .set("Cookie", [
-        `accessToken=${accessToken}`,
-        `refreshToken=${refreshToken}`,
-      ]) // Pass JWT in the header
-      .send({
-        oldPassword: "wrongpassword",
-        newPassword: "newpassword123",
-        confirmPassword: "newpassword123",
-      })
-      .redirects(0);
+  // USER-UPDATE-INFO TEST //
+  describe("POST /user/profile/edit-profile", () => {
+    it("should successfully update info with correct inputs", async () => {
+      const response = await request(app)
+        .post("/user/profile/edit-profile")
+        .set("Cookie", [
+          `accessToken=${accessToken}`,
+          `refreshToken=${refreshToken}`,
+        ])
+        .send({
+          fullName: "New Name",
+          dateOfBirth: "01-01-2001",
+          gender: "M",
+          areaPincode: "111222",
+          addressLine1: "New Address",
+          addressLine2: "Address Line",
+          landmark: "New Landmark",
+          state: "New State",
+          country: "New Country",
+        });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toContain("Validation Error");
-  });
-
-  it("should fail to change password if newPassword and confirmPassword does not match", async () => {
-    const response = await request(app)
-      .post("/user/profile/user-change-password")
-      .set("Cookie", [
-        `accessToken=${accessToken}`,
-        `refreshToken=${refreshToken}`,
-      ])
-      .send({
-        oldPassword: testUser.password,
-        newPassword: "newpassword123",
-        confirmPassword: "somethingdifferent321",
-      })
-      .redirects(0);
-
-    expect(response.status).toBe(400);
-    expect(response.body.message).toContain("Validation Error");
-  });
-
-  it("should fail with an invalid token", async () => {
-    const response = await request(app)
-      .post("/user/profile/user-change-password")
-      .set("Authorization", "Bearer invalidToken")
-      .send({
-        oldPassword: testUser.password,
-        newPassword: "newpassword123",
-        confirmPassword: "newpassword123",
-      });
-
-    expect(response.status).toBe(401);
-    expect(response.body.message).toBe("Authorization token is missing");
-  });
-
-  it("should fail without a token", async () => {
-    const response = await request(app)
-      .post("/user/profile/user-change-password")
-      .send({
-        oldPassword: testUser.password,
-        newPassword: "newpassword123",
-        confirmPassword: "newpassword123",
-      });
-
-    expect(response.status).toBe(401);
-    expect(response.body.message).toBe("Authorization token is missing");
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain(
+        "User profile updated successfully",
+      );
+    });
   });
 });

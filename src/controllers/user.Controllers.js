@@ -129,9 +129,18 @@ const loginUser = asyncHandler(async (req, res, next) => {
 });
 
 // UPDATE USER INFO //
+
 const updateUserInfo = async (req, res) => {
   try {
-    // Get data from request
+    // Get user through refreshToken
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
     const {
       fullName,
       dateOfBirth,
@@ -144,73 +153,145 @@ const updateUserInfo = async (req, res) => {
       country,
     } = req.body;
 
-    // Getting user through refreshToken
-    const user = await prisma.user.findFirst({
-      where: { refreshToken: req.cookies.refreshToken },
-    });
-
-    // Helper to filter out undefined or empty fields
-    const buildUpdateData = (fields) => {
-      return Object.fromEntries(
-        Object.entries(fields).filter(
-          ([value]) => value !== undefined && value !== "",
-        ),
-      );
+    // Update user basic details
+    const userUpdateData = {
+      ...(fullName && { fullName }),
+      ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
+      ...(gender && { gender }),
     };
 
-    // Construct data for user and address updates only with non-empty values
-    const userUpdateData = buildUpdateData({ fullName, dateOfBirth, gender });
-    const addressUpdateData = buildUpdateData({
-      areaPincode: areaPincode ? parseInt(areaPincode) : undefined,
-      addressLine1,
-      addressLine2,
-      landmark,
-      state,
-      country,
-    });
-
-    // Update user basic details if any provided
-    let updateUser;
-    if (Object.keys(userUpdateData).length) {
-      updateUser = await prisma.user.update({
+    // Update user if there are fields to update
+    if (Object.keys(userUpdateData).length > 0) {
+      await prisma.user.update({
         where: { id: user.id },
         data: userUpdateData,
       });
     }
 
-    // Check if user address exists, then update or create as necessary
+    // Handle address update/creation
+    const addressUpdateData = {
+      ...(areaPincode && { areaPincode: parseInt(areaPincode) }),
+      ...(addressLine1 && { addressLine1 }),
+      ...(addressLine2 && { addressLine2 }),
+      ...(landmark && { landmark }),
+      ...(state && { state }),
+      ...(country && { country }),
+    };
+
+    // Check if address exists
     const existingAddress = await prisma.userAddress.findFirst({
       where: { userId: user.id },
     });
 
     if (existingAddress) {
-      // Update address if there are fields to update
-      if (Object.keys(addressUpdateData).length) {
-        await prisma.userAddress.update({
-          where: { id: existingAddress.id },
-          data: addressUpdateData,
-        });
-        console.log("Updated user address");
-      }
-    } else if (Object.keys(addressUpdateData).length) {
-      // Create new address if none exists and there is data to insert
-      await prisma.userAddress.create({
-        data: { userId: user.id, ...addressUpdateData },
+      // Update existing address
+      await prisma.userAddress.update({
+        where: { id: existingAddress.id },
+        data: addressUpdateData,
       });
-      console.log("Created new user address");
+    } else {
+      // Create new address
+      await prisma.userAddress.create({
+        data: {
+          userId: user.id,
+          ...addressUpdateData,
+        },
+      });
     }
 
-    console.log("User details updated successfully:", updateUser);
-    return res
-      .status(200)
-      .json({ message: "User profile updated successfully" });
+    return res.status(200).json({
+      message: "User profile updated successfully",
+    });
   } catch (error) {
     console.error("Error updating user info:", error);
-    return res
-      .status(500)
-      .json({ error: "An error occurred while updating user info." });
+    return res.status(500).json({
+      message: "An error occurred while updating user info",
+    });
   }
 };
+
+// const updateUserInfo = async (req, res) => {
+//   try {
+//     // Get data from request
+//     const {
+//       fullName,
+//       dateOfBirth,
+//       gender,
+//       areaPincode,
+//       addressLine1,
+//       addressLine2,
+//       landmark,
+//       state,
+//       country,
+//     } = req.body;
+
+//     // Getting user through refreshToken
+//     const user = await prisma.user.findFirst({
+//       where: { refreshToken: req.cookies.refreshToken },
+//     });
+
+//     // Helper to filter out undefined or empty fields
+//     const buildUpdateData = (fields) => {
+//       return Object.fromEntries(
+//         Object.entries(fields).filter(
+//           ([value]) => value !== undefined && value !== "",
+//         ),
+//       );
+//     };
+
+//     // Construct data for user and address updates only with non-empty values
+//     const userUpdateData = buildUpdateData({ fullName, dateOfBirth, gender });
+//     const addressUpdateData = buildUpdateData({
+//       areaPincode: areaPincode ? parseInt(areaPincode) : undefined,
+//       addressLine1,
+//       addressLine2,
+//       landmark,
+//       state,
+//       country,
+//     });
+
+//     // Update user basic details if any provided
+//     let updateUser;
+//     if (Object.keys(userUpdateData).length) {
+//       updateUser = await prisma.user.update({
+//         where: { id: user.id },
+//         data: userUpdateData,
+//       });
+//     }
+
+//     // Check if user address exists, then update or create as necessary
+//     const existingAddress = await prisma.userAddress.findFirst({
+//       where: { userId: user.id },
+//     });
+
+//     if (existingAddress) {
+//       // Update address if there are fields to update
+//       if (Object.keys(addressUpdateData).length) {
+//         await prisma.userAddress.update({
+//           where: { id: existingAddress.id },
+//           data: addressUpdateData,
+//         });
+//         console.log("Updated user address");
+//       }
+//     } else if (Object.keys(addressUpdateData).length) {
+//       // Create new address if none exists and there is data to insert
+//       await prisma.userAddress.create({
+//         data: { userId: user.id, ...addressUpdateData },
+//       });
+//       console.log("Created new user address");
+//     }
+
+//     console.log("User details updated successfully:", updateUser);
+//     return res
+//       .status(200)
+//       .json({ message: "User profile updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating user info:", error);
+//     return res
+//       .status(500)
+//       .json({ error: "An error occurred while updating user info." });
+//   }
+// };
 
 // USER MY-TICKETS //
 const myTickets = async (req, res) => {

@@ -32,11 +32,11 @@
     "mockingoose": "^2.16.2",
     "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
-    "prisma": "^5.21.1",
+    "prisma": "^6.1.0",
     "supertest": "^7.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.21.1",
+    "@prisma/client": "^6.1.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cloudinary": "^2.5.1",

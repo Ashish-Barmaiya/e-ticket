@@ -5,6 +5,8 @@
 
 /** @type {import('jest').Config} */
 const config = {
+  testEnvironment: "node",
+
   transform: {
     "^.+\\.[t|j]sx?$": "babel-jest", // This ensures Babel is used for JS and JSX files
   },
