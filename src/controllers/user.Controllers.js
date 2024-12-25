@@ -256,55 +256,54 @@ const myTickets = async (req, res) => {
 
 // USER CHANGE PASSWORD //
 const userChangePassword = async (req, res) => {
-  // Get data from request
   const { email, oldPassword, newPassword, confirmPassword } = req.body;
 
   try {
-    prisma.$transaction(async (prisma) => {
-      // Get user using refreshToken from cookies
-      const user = await prisma.user.findFirst({
-        where: { refreshToken: req.cookies.refreshToken },
-      });
+    // Validations
+    if (!email || !oldPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-      if (!user)
-        return res.status(401).json({ message: "Invalid refresh token" });
-
-      // Compare email
-      const checkEmail = await prisma.user.findFirst({
-        where: { email },
-      });
-
-      if (!checkEmail)
-        return res.status(400).json({ message: "Invalid email" });
-
-      // Compare old hashed password using bcrypt compare
-      const compareOldPassword = await bcrypt.compare(
-        oldPassword,
-        user.password,
-      );
-      if (!compareOldPassword)
-        return res.status(400).json({ message: "Incorrect password" });
-
-      // Check if newPassword and confirmPassword matches
-      if (newPassword !== confirmPassword) {
-        return res.status(400).json({
-          message: "New Password does not match with confirm password",
-        });
-      }
-
-      // Hash newPassword
-      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-      // Update user table to store new hashed password
-      const changedPassword = await prisma.user.update({
-        where: { id: user.id },
-        data: { password: hashedPassword },
-      });
-
-      // Return success
-      console.log("Password changed successfully ", changedPassword);
-      return res.status(200).json({ message: "Password changed successfully" });
+    // Get user using refreshToken from cookies and verify email
+    const user = await prisma.user.findFirst({
+      where: {
+        refreshToken: req.cookies.refreshToken,
+        email: email,
+      },
     });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "Invalid refresh token or email" });
+    }
+
+    // Compare old hashed password
+    const isOldPasswordCorrect = await bcrypt.compare(
+      oldPassword,
+      user.password,
+    );
+    if (!isOldPasswordCorrect) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    // Check if newPassword and confirmPassword match
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "New Password does not match with confirm password" });
+    }
+
+    // Hash newPassword
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update user password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    return res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     console.error("Error changing password: ", error);
     return res

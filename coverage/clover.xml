@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1735021390489" clover="3.2.0">
-  <project timestamp="1735021390489" name="All files">
-    <metrics statements="461" coveredstatements="137" conditionals="138" coveredconditionals="9" methods="61" coveredmethods="11" elements="660" coveredelements="157" complexity="0" loc="461" ncloc="461" packages="5" files="15" classes="15"/>
+<coverage generated="1735125248715" clover="3.2.0">
+  <project timestamp="1735125248716" name="All files">
+    <metrics statements="463" coveredstatements="161" conditionals="144" coveredconditionals="21" methods="60" coveredmethods="14" elements="667" coveredelements="196" complexity="0" loc="463" ncloc="463" packages="5" files="15" classes="15"/>
     <package name="e-Ticket">
       <metrics statements="16" coveredstatements="16" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="app.js" path="E:\WebDev\e-Ticket\app.js">
         <metrics statements="16" coveredstatements="16" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="8" count="1" type="stmt"/>
         <line num="9" count="1" type="stmt"/>
-        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
         <line num="12" count="1" type="stmt"/>
-        <line num="13" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
         <line num="20" count="1" type="stmt"/>
         <line num="21" count="1" type="stmt"/>
-        <line num="22" count="1" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
         <line num="37" count="1" type="stmt"/>
         <line num="38" count="1" type="stmt"/>
-        <line num="40" count="1" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="50" count="1" type="stmt"/>
-        <line num="51" count="1" type="stmt"/>
-        <line num="52" count="1" type="stmt"/>
-        <line num="53" count="1" type="stmt"/>
-        <line num="59" count="1" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
       </file>
     </package>
     <package name="e-Ticket.src.controllers">
-      <metrics statements="280" coveredstatements="48" conditionals="103" coveredconditionals="8" methods="29" coveredmethods="4"/>
+      <metrics statements="278" coveredstatements="59" conditionals="107" coveredconditionals="16" methods="28" coveredmethods="5"/>
       <file name="events.Controller.js" path="E:\WebDev\e-Ticket\src\controllers\events.Controller.js">
         <metrics statements="56" coveredstatements="4" conditionals="22" coveredconditionals="0" methods="4" coveredmethods="0"/>
         <line num="4" count="1" type="stmt"/>
@@ -156,7 +156,7 @@
         <line num="212" count="0" type="stmt"/>
       </file>
       <file name="tickets.Controller.js" path="E:\WebDev\e-Ticket\src\controllers\tickets.Controller.js">
-        <metrics statements="65" coveredstatements="1" conditionals="29" coveredconditionals="0" methods="7" coveredmethods="0"/>
+        <metrics statements="66" coveredstatements="1" conditionals="29" coveredconditionals="0" methods="7" coveredmethods="0"/>
         <line num="3" count="1" type="stmt"/>
         <line num="8" count="0" type="stmt"/>
         <line num="9" count="0" type="stmt"/>
@@ -182,49 +182,50 @@
         <line num="60" count="0" type="stmt"/>
         <line num="65" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="68" count="0" type="stmt"/>
-        <line num="71" count="0" type="stmt"/>
-        <line num="82" count="0" type="stmt"/>
-        <line num="90" count="0" type="stmt"/>
-        <line num="93" count="0" type="stmt"/>
-        <line num="94" count="0" type="stmt"/>
-        <line num="97" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
         <line num="98" count="0" type="stmt"/>
-        <line num="104" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
         <line num="105" count="0" type="stmt"/>
-        <line num="107" count="0" type="stmt"/>
-        <line num="109" count="0" type="stmt"/>
-        <line num="133" count="0" type="stmt"/>
-        <line num="135" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="136" count="0" type="stmt"/>
-        <line num="140" count="0" type="stmt"/>
-        <line num="151" count="0" type="stmt"/>
-        <line num="153" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="136" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
         <line num="159" count="0" type="stmt"/>
         <line num="160" count="0" type="stmt"/>
-        <line num="166" count="0" type="stmt"/>
-        <line num="168" count="0" type="stmt"/>
-        <line num="169" count="0" type="stmt"/>
+        <line num="170" count="0" type="stmt"/>
         <line num="172" count="0" type="stmt"/>
-        <line num="176" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="177" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="176" count="0" type="stmt"/>
         <line num="180" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="181" count="0" type="stmt"/>
-        <line num="184" count="0" type="stmt"/>
-        <line num="186" count="0" type="stmt"/>
-        <line num="191" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="192" count="0" type="stmt"/>
-        <line num="196" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="197" count="0" type="stmt"/>
+        <line num="184" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="185" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="195" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="200" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="201" count="0" type="stmt"/>
-        <line num="214" count="0" type="stmt"/>
-        <line num="223" count="0" type="stmt"/>
-        <line num="231" count="0" type="stmt"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="218" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
         <line num="235" count="0" type="stmt"/>
-        <line num="241" count="0" type="stmt"/>
-        <line num="242" count="0" type="stmt"/>
+        <line num="238" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="244" count="0" type="stmt"/>
       </file>
       <file name="user.Controllers.js" path="E:\WebDev\e-Ticket\src\controllers\user.Controllers.js">
-        <metrics statements="92" coveredstatements="35" conditionals="32" coveredconditionals="8" methods="11" coveredmethods="4"/>
+        <metrics statements="89" coveredstatements="46" conditionals="36" coveredconditionals="16" methods="10" coveredmethods="5"/>
         <line num="13" count="1" type="stmt"/>
         <line num="14" count="1" type="stmt"/>
         <line num="15" count="1" type="stmt"/>
@@ -297,75 +298,76 @@
         <line num="252" count="0" type="stmt"/>
         <line num="253" count="0" type="stmt"/>
         <line num="258" count="1" type="stmt"/>
-        <line num="260" count="0" type="stmt"/>
-        <line num="262" count="0" type="stmt"/>
-        <line num="263" count="0" type="stmt"/>
-        <line num="265" count="0" type="stmt"/>
-        <line num="269" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="270" count="0" type="stmt"/>
-        <line num="273" count="0" type="stmt"/>
-        <line num="277" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="278" count="0" type="stmt"/>
-        <line num="281" count="0" type="stmt"/>
-        <line num="285" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="286" count="0" type="stmt"/>
-        <line num="289" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="290" count="0" type="stmt"/>
-        <line num="296" count="0" type="stmt"/>
-        <line num="299" count="0" type="stmt"/>
-        <line num="305" count="0" type="stmt"/>
-        <line num="306" count="0" type="stmt"/>
+        <line num="259" count="1" type="stmt"/>
+        <line num="261" count="1" type="stmt"/>
+        <line num="263" count="1" type="cond" truecount="5" falsecount="1"/>
+        <line num="264" count="0" type="stmt"/>
+        <line num="268" count="1" type="stmt"/>
+        <line num="275" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="276" count="0" type="stmt"/>
+        <line num="282" count="1" type="stmt"/>
+        <line num="286" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="287" count="0" type="stmt"/>
+        <line num="291" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="292" count="0" type="stmt"/>
+        <line num="298" count="1" type="stmt"/>
+        <line num="301" count="1" type="stmt"/>
+        <line num="306" count="1" type="stmt"/>
+        <line num="308" count="0" type="stmt"/>
         <line num="309" count="0" type="stmt"/>
-        <line num="310" count="0" type="stmt"/>
       </file>
     </package>
     <package name="e-Ticket.src.middlewares">
-      <metrics statements="51" coveredstatements="6" conditionals="22" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <metrics statements="55" coveredstatements="17" conditionals="24" coveredconditionals="3" methods="2" coveredmethods="1"/>
       <file name="auth.middleware.js" path="E:\WebDev\e-Ticket\src\middlewares\auth.middleware.js">
-        <metrics statements="43" coveredstatements="5" conditionals="12" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="44" count="1" type="stmt"/>
-        <line num="45" count="1" type="stmt"/>
-        <line num="47" count="1" type="stmt"/>
-        <line num="48" count="0" type="stmt"/>
-        <line num="49" count="0" type="stmt"/>
+        <metrics statements="47" coveredstatements="16" conditionals="14" coveredconditionals="3" methods="1" coveredmethods="1"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="5" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="16" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="32" count="3" type="stmt"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="34" count="3" type="stmt"/>
+        <line num="36" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
         <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="52" count="0" type="stmt"/>
-        <line num="53" count="0" type="stmt"/>
-        <line num="54" count="0" type="stmt"/>
-        <line num="57" count="0" type="stmt"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
         <line num="59" count="0" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
-        <line num="61" count="0" type="stmt"/>
-        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
         <line num="64" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="65" count="0" type="stmt"/>
-        <line num="66" count="0" type="stmt"/>
-        <line num="67" count="0" type="stmt"/>
         <line num="70" count="0" type="stmt"/>
-        <line num="71" count="0" type="stmt"/>
-        <line num="74" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="77" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="78" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
         <line num="82" count="0" type="stmt"/>
-        <line num="83" count="0" type="stmt"/>
-        <line num="86" count="0" type="stmt"/>
-        <line num="87" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="88" count="0" type="stmt"/>
-        <line num="90" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
         <line num="94" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
         <line num="99" count="0" type="stmt"/>
-        <line num="105" count="0" type="stmt"/>
-        <line num="106" count="0" type="stmt"/>
-        <line num="108" count="0" type="stmt"/>
-        <line num="109" count="0" type="stmt"/>
-        <line num="110" count="0" type="stmt"/>
-        <line num="111" count="0" type="stmt"/>
-        <line num="115" count="0" type="stmt"/>
-        <line num="116" count="0" type="stmt"/>
-        <line num="117" count="0" type="stmt"/>
-        <line num="118" count="0" type="stmt"/>
-        <line num="138" count="1" type="stmt"/>
-        <line num="141" count="1" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="120" count="1" type="stmt"/>
+        <line num="124" count="1" type="stmt"/>
       </file>
       <file name="error.Middleware.js" path="E:\WebDev\e-Ticket\src\middlewares\error.Middleware.js">
         <metrics statements="8" coveredstatements="1" conditionals="10" coveredconditionals="0" methods="1" coveredmethods="0"/>
@@ -474,7 +476,7 @@
       </file>
     </package>
     <package name="e-Ticket.src.utils">
-      <metrics statements="35" coveredstatements="23" conditionals="9" coveredconditionals="1" methods="9" coveredmethods="7"/>
+      <metrics statements="35" coveredstatements="25" conditionals="9" coveredconditionals="2" methods="9" coveredmethods="8"/>
       <file name="apiError.js" path="E:\WebDev\e-Ticket\src\utils\apiError.js">
         <metrics statements="9" coveredstatements="0" conditionals="5" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="8" count="0" type="stmt"/>
@@ -498,20 +500,20 @@
         <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
         <line num="4" count="1" type="stmt"/>
         <line num="6" count="1" type="stmt"/>
-        <line num="7" count="1" type="stmt"/>
+        <line num="7" count="6" type="stmt"/>
         <line num="14" count="1" type="stmt"/>
-        <line num="15" count="1" type="stmt"/>
+        <line num="15" count="6" type="stmt"/>
       </file>
       <file name="validators.js" path="E:\WebDev\e-Ticket\src\utils\validators.js">
-        <metrics statements="17" coveredstatements="15" conditionals="2" coveredconditionals="1" methods="4" coveredmethods="3"/>
+        <metrics statements="17" coveredstatements="17" conditionals="2" coveredconditionals="2" methods="4" coveredmethods="4"/>
         <line num="4" count="1" type="stmt"/>
         <line num="5" count="8" type="stmt"/>
-        <line num="6" count="12" type="stmt"/>
-        <line num="8" count="4" type="stmt"/>
-        <line num="9" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="10" count="4" type="stmt"/>
-        <line num="13" count="0" type="stmt"/>
-        <line num="16" count="0" type="stmt"/>
+        <line num="6" count="24" type="stmt"/>
+        <line num="8" count="7" type="stmt"/>
+        <line num="9" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="10" count="5" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
         <line num="26" count="1" type="stmt"/>
         <line num="48" count="1" type="stmt"/>
         <line num="60" count="1" type="stmt"/>

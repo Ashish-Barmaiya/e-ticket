@@ -20,19 +20,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// let __filename, __dirname;
-
-// // Conditional setup for __filename and __dirname
-// if (process.env.NODE_ENV === "test") {
-//   // Fallback for Jest (mocked setup for tests)
-//   __filename = path.resolve("./app.js");
-//   __dirname = path.dirname(__filename);
-// } else {
-//   // Production setup
-//   __filename = fileURLToPath(import.meta.url);
-//   __dirname = path.dirname(__filename);
-// }
-
 const __filename = path.resolve("./app.js");
 const __dirname = path.dirname(__filename);
 

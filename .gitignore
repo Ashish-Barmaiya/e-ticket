@@ -3,3 +3,4 @@ node_modules
 .prettierrc
 .prettierignore
 tests/.env.test
+coverage/
