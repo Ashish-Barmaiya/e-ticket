@@ -4,4 +4,4 @@ node_modules
 .prettierignore
 .env.test
 eslint.config.js
-coverage/
+coverage
