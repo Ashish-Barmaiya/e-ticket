@@ -151,10 +151,16 @@ model HostTeamManagement {
 model User {
   id                  String                @id @default(uuid())
   email               String                @unique
+  emailVerification   Boolean               @default(false)
   password            String
   fullName            String
   phone               String                @unique
-  dateOfBirth         DateTime?
+  phoneVerification   Boolean               @default(false)
+  dateOfBirth         String?
+  eKyc                Boolean               @default(false)
+  aadhaarNumber       String?               @unique
+  aadhaarPhoneNumber  String?               @unique
+  uniqueUserIdentity  String?               @unique
   profilePicture      String?
   gender              String?
   refreshToken        String?

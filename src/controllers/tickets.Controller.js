@@ -157,11 +157,9 @@ class TicketController {
       });
     } catch (error) {
       console.error("Error retrieving ticket details:", error);
-      return res
-        .status(500)
-        .json({
-          message: "Internal server error while retrieving ticket details",
-        });
+      return res.status(500).json({
+        message: "Internal server error while retrieving ticket details",
+      });
     }
   }
 

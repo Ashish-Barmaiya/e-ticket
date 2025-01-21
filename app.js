@@ -3,11 +3,30 @@ import env from "dotenv";
 import cors from "cors";
 import path from "path";
 import cookieParser from "cookie-parser";
-import { errorHandler } from "./src/middlewares/error.Middleware.js";
+import redis from "redis";
+import session from "express-session";
+// import { errorHandler } from "./src/middlewares/error.Middleware.js";
 
 env.config();
 const app = express();
 
+// REDIS SETUP //
+const redisClient = redis.createClient({
+  host: "127.0.0.1",
+  port: 6379,
+});
+
+redisClient.on("connect", () => {
+  console.log("Connected to Redis");
+});
+
+redisClient.on("error", (err) => {
+  console.error("Redis error: ", err);
+});
+
+redisClient.connect();
+
+// COOKIE-PARSER SETUP //
 app.use(cookieParser());
 app.use(
   cors({
@@ -19,6 +38,16 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+// EXPRESS-SESSION SETUP //
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 600000 },
+  }),
+);
 
 const __filename = path.resolve("./app.js");
 const __dirname = path.dirname(__filename);
@@ -42,6 +71,6 @@ app.use("/events", eventRouter);
 //     res.status(404).send("ERROR 404!! PAGE NOT FOUND");
 // });
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
-export { app };
+export { app, redisClient };

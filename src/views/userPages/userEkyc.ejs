@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-KYC</title>
+</head>
+<body>
+    <h2>E-KYC</h2>
+    <hr>
+    <br>
+    <h4>Upload your Aadhaar XML file below</h4>
+    <form action="/user/profile/user-ekyc" method="post" enctype="multipart/form-data">
+        <label for="aadhaarXmlFile">Aadhaar XML File:</label>
+        <input type="file" name="aadhaarXmlFile">
+        <hr>
+        <label for="aadhaarXmlFilePassword">Shareable Password:</label>
+        <input type="password" name="aadhaarXmlFilePassword" required>
+        <p>(enter shareable password that you created while downloading aadhaar xml file)</p>
+        <hr>
+        <button type="submit">Upload</button>
+        <button type="reset">Reset</button>
+    </form>
+</body>
+</html>

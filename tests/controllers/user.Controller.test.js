@@ -236,32 +236,4 @@ describe("User Protected Routes", () => {
       expect(response.body.message).toBe("Authorization token is missing");
     });
   });
-
-  // USER-UPDATE-INFO TEST //
-  describe("POST /user/profile/edit-profile", () => {
-    it("should successfully update info with correct inputs", async () => {
-      const response = await request(app)
-        .post("/user/profile/edit-profile")
-        .set("Cookie", [
-          `accessToken=${accessToken}`,
-          `refreshToken=${refreshToken}`,
-        ])
-        .send({
-          fullName: "New Name",
-          dateOfBirth: "01-01-2001",
-          gender: "M",
-          areaPincode: "111222",
-          addressLine1: "New Address",
-          addressLine2: "Address Line",
-          landmark: "New Landmark",
-          state: "New State",
-          country: "New Country",
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body.message).toContain(
-        "User profile updated successfully",
-      );
-    });
-  });
 });

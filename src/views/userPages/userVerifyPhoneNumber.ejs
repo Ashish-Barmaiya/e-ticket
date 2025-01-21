@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Aadhaar</title>
+</head>
+<body>
+    <h2>Verify Aadhaar-Linked Phone Number</h2>
+    <hr>
+    <h4>Enter Your Mobile Number</h4>
+    <p>NOTE:- Enter mobile number which is linked to your aadhaar</p>
+    <form action="/user/profile/user-ekyc/verify-phone-number" method="post">
+        <label for="aadhaarPhoneNumber">Enter Mobile Number:</label>
+        <input type="tel" name="aadhaarPhoneNumber" placeholder="Enter phone number" required>
+        <button type="submit">Send OTP</button>
+    </form>
+</body>
+</html>
