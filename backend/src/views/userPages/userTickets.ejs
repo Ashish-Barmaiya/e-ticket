@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets</title>
+</head>
+<body>
+    <h2>My Tickets</h2>
+    <hr>
+    <br>
+    <% if (!allTickets || allTickets.length === 0) { %>
+        <p>You have not booked any tickets yet</p>
+    <% } else { %>
+        <% allTickets.forEach(allTickets => { %>
+            <h3><%= allTickets.event.title %></h3>
+            <p><%= allTickets.event.description %></p>
+            <p>Artist: <%= allTickets.event.artist %></p>
+            <p>Ticket Number: <%= allTickets.ticketNumber %></p>
+            <p>Seat Number: <%= allTickets.seatNumber %></p>
+            <p>Venue: <%= allTickets.event.venueInformation.name %></p>
+            <p>Date: <%= new Date(allTickets.event.date).toDateString() %></p> <!-- Format date -->
+            <p>Start Time: <%= new Date(allTickets.event.startTime).toLocaleTimeString() %></p> <!-- Format start time -->
+            <p>End Time: <%= allTickets.event.endTime ? new Date(allTickets.event.endTime).toLocaleTimeString() : "TBD" %></p> <!-- Format end time -->
+            <p>Price: <%= allTickets.price %></p>
+            <p>Ticket Owner: <%= allTickets.user.fullName %></p>
+            <p>Ticket Owner's UUI : <%= allTickets.user.uniqueUserIdentity %></p>
+            <a href="/user/profile/my-tickets/cancel-ticket/<%= allTickets.id %>">Cancel Ticket</a>
+            <hr>
+       <% }) %>
+    <% } %>
+</body>
+</html>

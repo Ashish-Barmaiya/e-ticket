@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Phone Number</title>
+</head>
+<body>
+    <h2>Send OTP to your Phone Number</h2>
+    <hr>
+    <h4>Your Phone Number is: <%= maskedUserPhoneNumber %></h4>
+    <p>Click below to sned OTP to this phone number</p>
+    <form action="/user/profile/edit-profile/verify-phone-number" method="post">
+        <input type="hidden" name="otp" placeholder="Enter OTP">
+        <button type="submit" name="action" value="verifyOtp">Send OTP</button>
+    </form>
+</body>
+</html>

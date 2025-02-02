@@ -1,0 +1,8 @@
+node_modules
+.env
+.prettierrc
+.prettierignore
+.env.test
+eslint.config.js
+coverage
+src/uploads/
