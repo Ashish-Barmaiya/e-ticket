@@ -1,20 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import SignInSignUp from "@/components/SignInSignUp";
 import SearchBar from "./SearchBar";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { setUser, setSignInOpen } from "../redux/userSlice";
+import { useRouter } from "next/navigation";
+import SignInSignUp from "./SignInSignUp"; // Import the SignInSignUp component
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openSignIn, setSignInOpen] = useState(false); // State for sign-in dialog
-  const [openSignUp, setSignUpOpen] = useState(false); // State for sign-up dialog
-  const [query, setQuery] = useState("");
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.user.user); // Access user state from Redux
+  const openSignIn = useAppSelector((state) => state.user.openSignIn); // Access openSignIn state from Redux
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleSignOut = () => {
+    // Clear cookies, localStorage, and Redux state
+    document.cookie =
+      "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    dispatch(setUser(null)); // Update Redux state
+    localStorage.removeItem("user");
+    router.refresh(); // Refresh the page to reflect the logged-out state
+  };
+
+  // Check for user in localStorage on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      dispatch(setUser(JSON.parse(storedUser)));
+    }
+  }, [dispatch]);
+
+  // Update localStorage when user changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
 
   return (
     <>
@@ -22,8 +54,6 @@ const Navbar = () => {
         <div className="container mx-auto flex justify-between items-center">
           {/* Logo and Search Bar Container */}
           <div className="flex content-start items-center space-x-2">
-            {" "}
-            {/* Flex container for logo and search bar */}
             {/* Logo */}
             <div className="text-teal-600 text-3xl font-semibold">
               <Link href="/">
@@ -75,26 +105,38 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Sign In Button */}
+          {/* Sign In/Profile Button */}
           <div className={`lg:flex space-x-6 ${isOpen ? "block" : "hidden"} `}>
-            <Button
-              variant="outline"
-              className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
-              onClick={() => setSignInOpen(true)} // Open sign-in dialog
-            >
-              Sign In
-            </Button>
+            {user ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
+                >
+                  Profile
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-md bg-red-600 text-white hover:text-red-600 hover:bg-white hover:border-red-500 transition duration-300"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
+                onClick={() => dispatch(setSignInOpen(true))} // Open sign-in dialog
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </nav>
-
-      {/* Render SignInSignUp Component */}
-      <SignInSignUp
-        openSignIn={openSignIn}
-        setSignInOpen={setSignInOpen}
-        openSignUp={openSignUp}
-        setSignUpOpen={setSignUpOpen}
-      />
+      {/* Render the SignInSignUp component and pass the openSignIn state */}
+      <SignInSignUp openSignIn={openSignIn} />
     </>
   );
 };

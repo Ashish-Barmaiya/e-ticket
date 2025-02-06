@@ -207,8 +207,16 @@ const loginUser = asyncHandler(async (req, res, next) => {
       sameSite: "strict",
     });
 
-    // Redirect to profile page
-    res.redirect("/user/profile?");
+    // Send user data with sucess status
+    res.status(200).json({
+      success: true,
+      message: "Login Successful",
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+      },
+    });
   })(req, res, next);
 });
 

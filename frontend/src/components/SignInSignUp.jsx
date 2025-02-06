@@ -1,130 +1,153 @@
-import React, { useState } from "react";
-import Dialog from "./Dialog";
+// frontend/components/SignInSignUp.jsx
 
-const SignInSignUp = ({
-  openSignIn,
-  setSignInOpen,
-  openSignUp,
-  setSignUpOpen,
-}) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+"use client";
 
-  const handleSignInSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError("");
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { setUser, setSignInOpen, setSignUpOpen } from "../redux/userSlice";
+import { useEffect } from "react";
 
+const FormSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+});
+
+function SignInForm() {
+  const [isError, setIsError] = useState(false);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(FormSchema),
+  });
+
+  async function onSubmit(values) {
+    setIsError(false);
     try {
       const response = await fetch("/api/user/user-sign-in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify(values),
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Sign-in failed.");
+        setIsError(true);
+        return;
       }
 
-      // Handle successful login (e.g., redirect or update UI)
-      alert("Login successful!");
-      setSignInOpen(false); // Close dialog after successful login
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      const data = await response.json();
+      console.log("Login Response:", data);
+      if (data.success) {
+        dispatch(setUser(data.user)); // Dispatch the setUser action
+        router.refresh();
+        dispatch(setSignInOpen(false)); // Close the sign-in dialog
+      } else {
+        setIsError(true);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setIsError(true);
     }
-  };
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+      {isError && (
+        <div className="p-2 rounded-md bg-red-200 text-red-500">
+          Incorrect Credentials
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          placeholder="m@example.com"
+          type="email"
+          {...register("email")}
+        />
+        {errors?.email && (
+          <p className="text-sm text-red-500">{errors.email?.message}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          placeholder="Password"
+          type="password"
+          {...register("password")}
+        />
+        {errors?.password && (
+          <p className="text-sm text-red-500">{errors.password?.message}</p>
+        )}
+      </div>
+      <Button className="w-full" type="submit">
+        Sign In
+      </Button>
+    </form>
+  );
+}
+
+const SignInSignUp = ({ openSignIn }) => {
+  //Only accept openSignIn
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    //Log to confirm prop and render
+    console.log("SignInSignUp - openSignIn prop:", openSignIn);
+  }, [openSignIn]);
 
   return (
     <>
-      {/* Sign-In Dialog */}
-      <Dialog isOpen={openSignIn} onClose={() => setSignInOpen(false)}>
-        <h3 className="text-gray-700 text-xl text-center font-semibold mb-4 ">
-          Sign In
-        </h3>
-        <form onSubmit={handleSignInSubmit}>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-teal-600 hover:bg-teal-500 transition duration-300 text-white rounded"
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-        <p className="mt-4 text-center">
-          Don't have an account?{" "}
-          <button
-            onClick={() => {
-              setSignInOpen(false);
-              setSignUpOpen(true);
-            }}
-            className="text-teal-600 font-semibold hover:text-teal-400 transition duration-300"
-          >
-            Sign Up
-          </button>
-        </p>
-      </Dialog>
-
-      {/* Sign-Up Dialog */}
-      <Dialog isOpen={openSignUp} onClose={() => setSignUpOpen(false)}>
-        <h3 className="text-gray-700 text-center text-xl font-semibold mb-4">
-          Sign Up
-        </h3>
-        <form>
-          {/* Add sign-up form fields here */}
-          <input
-            type="text"
-            placeholder="Full Name"
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <input
-            type="phone"
-            placeholder="Mobile Number"
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-2 mb-4 border border-gray-300 rounded"
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded"
-          >
-            Sign Up
-          </button>
-        </form>
+      <Dialog
+        open={openSignIn}
+        onOpenChange={(isOpen) => dispatch(setSignInOpen(isOpen))}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-center">Sign In</DialogTitle>
+            <DialogDescription className="text-center">
+              Sign in to your account to continue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <SignInForm />
+          </div>
+          <div className="flex justify-center pt-2">
+            <Link
+              href="#"
+              onClick={() => {
+                dispatch(setSignInOpen(false));
+                dispatch(setSignUpOpen(true));
+              }}
+            >
+              Create an account
+            </Link>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
