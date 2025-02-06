@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Jumbotron = () => {
   return (
-    <section className="relative h-screen">
+    <section className="relative h-[500px] ">
       {/* Single Image */}
       <Image
         src="/Ticketo_logo.jpg"

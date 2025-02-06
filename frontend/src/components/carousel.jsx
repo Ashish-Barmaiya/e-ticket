@@ -55,41 +55,38 @@ const CarouselComponent = () => {
   }, [api]);
 
   return (
-    <div className="w-full h-screen flex justify-center items-center relative">
-      {/* Outer container with 100% width */}
-      <div className="w-full max-w-full h-[500] flex justify-center items-center">
-        {/* Inner carousel container with 80% width */}
-        <Carousel className="w-4/5 h-full" setApi={setApi}>
-          <CarouselContent>
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <CarouselItem key={index} className="flex justify-center">
-                <div className="p-2 w-full flex justify-center">
-                  {/* Card takes full width of the parent */}
-                  <Card className="w-full max-w-full h-80 mx-auto">
-                    <CardContent className="flex items-center justify-center h-full p-6 bg-white rounded-lg shadow-lg font-sans text-xl">
-                      <h1>Don't Just Buy Tickets</h1>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
+    <div className="  w-full max-w-full h-[500] flex justify-center items-center mt-24">
+      {/* Inner carousel container with 80% width */}
+      <Carousel className="w-4/5 h-full" setApi={setApi}>
+        <CarouselContent>
+          {Array.from({ length: totalSlides }).map((_, index) => (
+            <CarouselItem key={index} className="flex justify-center">
+              <div className="p-2 w-full flex justify-center">
+                {/* Card takes full width of the parent */}
+                <Card className="w-full max-w-full h-80 mx-auto">
+                  <CardContent className="flex items-center justify-center h-full p-6 bg-white rounded-lg shadow-lg font-sans text-xl">
+                    <h1>Don't Just Buy Tickets</h1>
+                  </CardContent>
+                </Card>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
 
-          {/* Navigation buttons inside the carousel container */}
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2">
-            <CarouselPrevious
-              className="text-teal-400 bg-text rounded-full p-2 shadow-lg"
-              onClick={handlePrevious}
-            />
-          </div>
-          <div className="absolute top-1/2 right-0 transform -translate-y-1/2">
-            <CarouselNext
-              className="text-teal-400 bg-text rounded-full p-2 shadow-lg"
-              onClick={handleNext}
-            />
-          </div>
-        </Carousel>
-      </div>
+        {/* Navigation buttons inside the carousel container */}
+        <div className="absolute top-1/2 left-0 transform -translate-y-1/2">
+          <CarouselPrevious
+            className="text-teal-400 bg-text rounded-full p-2 shadow-lg"
+            onClick={handlePrevious}
+          />
+        </div>
+        <div className="absolute top-1/2 right-0 transform -translate-y-1/2">
+          <CarouselNext
+            className="text-teal-400 bg-text rounded-full p-2 shadow-lg"
+            onClick={handleNext}
+          />
+        </div>
+      </Carousel>
     </div>
   );
 };

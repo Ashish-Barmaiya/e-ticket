@@ -76,6 +76,9 @@ model VenueInformation {
   hostId               String
   name                 String
   address              String
+  city                 String?
+  lattitude            Float?
+  longitude            Float?
   seatingCapacity      Int
   seatingCategories    String
   seatingLayout        String

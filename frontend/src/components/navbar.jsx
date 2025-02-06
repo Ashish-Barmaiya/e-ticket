@@ -18,14 +18,14 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full bg-white backdrop-blur-md z-50 p-4 shadow-md font-sans">
-        <div className="container mx-auto flex justify-between items-center px-3">
+      <nav className="fixed px-10 top-8 left-0 w-full bg-white backdrop-blur-md z-40 p-4 shadow-sm font-sans h-16">
+        <div className="container mx-auto flex justify-between items-center">
           {/* Logo and Search Bar Container */}
           <div className="flex content-start items-center space-x-2">
             {" "}
             {/* Flex container for logo and search bar */}
             {/* Logo */}
-            <div className="text-teal-600 text-3xl font-semibold px-2">
+            <div className="text-teal-600 text-3xl font-semibold">
               <Link href="/">
                 <h1>ticketo</h1>
               </Link>
@@ -57,31 +57,29 @@ const Navbar = () => {
           </div>
 
           {/* Navbar Links */}
-          <div className={`lg:flex space-x-6 ${isOpen ? "block" : "hidden"}`}>
+          <div className={`lg:flex space-x-8 ${isOpen ? "block" : "hidden"}`}>
             <Link href="/api/events">
-              <button className="text-gray-700 hover:text-teal-400 transition duration-300 text-lg px-4">
+              <button className="text-gray-800 hover:text-teal-600 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Events
               </button>
             </Link>
             <Link href="/api/host">
-              <button className="text-gray-700 hover:text-teal-400 transition duration-300 text-lg px-4">
+              <button className="text-gray-800 hover:text-teal-600 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Host an Event
               </button>
             </Link>
             <Link href="/api/resell-tickets">
-              <button className="text-gray-700 hover:text-teal-400 transition duration-300 text-lg px-4">
+              <button className="text-gray-800 hover:text-teal-600 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Sell Tickets
               </button>
             </Link>
           </div>
 
-          {/* Sign In and Sign Up Buttons */}
-          <div
-            className={`lg:flex space-x-6 ${isOpen ? "block" : "hidden"} px-3`}
-          >
+          {/* Sign In Button */}
+          <div className={`lg:flex space-x-6 ${isOpen ? "block" : "hidden"} `}>
             <Button
               variant="outline"
-              className="bg-teal-600 text-white hover:text-teal-500 hover:white transition duration-300"
+              className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
               onClick={() => setSignInOpen(true)} // Open sign-in dialog
             >
               Sign In

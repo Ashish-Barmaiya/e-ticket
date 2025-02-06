@@ -18,7 +18,7 @@ const SignInSignUp = ({
     setError("");
 
     try {
-      const response = await fetch("/user/user-sign-in", {
+      const response = await fetch("/api/user/user-sign-in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

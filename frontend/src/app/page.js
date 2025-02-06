@@ -1,12 +1,28 @@
 import Navbar from "../components/navbar";
-// import Jumbotron from "../components/jumbotron";
-import HomePageCarousel from "../components/carousel";
+import SecondaryNavbar from "../components/SecondaryNavbar";
+import Footer from "../components/Footer";
+import CarouselWithSidebar from "../components/CarouselWithSidebar.jsx";
+import EventSlider from "../components/EventSlider";
 
 export default function Page() {
   return (
     <div>
-      <Navbar />
-      <HomePageCarousel />
+      <div className="px-10">
+        <SecondaryNavbar />
+        <Navbar />
+        <div>
+          <CarouselWithSidebar />
+        </div>
+      </div>
+      <div className="">
+        <div className="px-10">
+          <EventSlider />
+        </div>
+      </div>
+
+      <div>
+        <Footer />
+      </div>
     </div>
   );
 }
