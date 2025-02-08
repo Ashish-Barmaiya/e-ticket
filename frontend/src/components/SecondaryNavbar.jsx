@@ -7,10 +7,6 @@ import CitySearch from "./CitySearch";
 const SecondaryNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
     <>
       <nav className="fixed px-10 top-0 left-0 w-full bg-teal-700 p-1 z-50">

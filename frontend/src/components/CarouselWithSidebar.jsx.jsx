@@ -85,7 +85,7 @@ const CarouselWithSidebar = () => {
             spaceBetween={20}
             slidesPerView={1}
             pagination={{ clickable: true }}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            autoplay={{ delay: 4000, disableOnInteraction: false }}
             className="rounded-2xl overflow-hidden h-full"
             onSwiper={(swiper) => {
               swiperRef.current = { swiper };
@@ -122,7 +122,7 @@ const CarouselWithSidebar = () => {
       {/* Right - Scrollable Info Cards (30%) */}
 
       <div className="w-[30%] h-full overflow-y-auto px-0 bg-white text-white rounded-lg space-y- scrollbar-hide">
-        <div className="bg-lime-50/60 rounded-md">
+        <div className="bg-lime-50/60 rounded-md pr-0">
           {infoCards.map((card, index) => (
             <div
               key={index}

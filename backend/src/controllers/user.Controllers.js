@@ -82,10 +82,16 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
     };
     console.log("OTP sent successfully via Email");
 
-    return res.redirect(`/user/verify-email?email=${email}`);
+    return res.status(200).json({
+      success: true,
+      email,
+    });
   } catch (error) {
     console.error("Error initializing user registration: ", error);
-    res.status(500).json({ message: "Error initializing user registration" });
+    res.status(500).json({
+      success: false,
+      message: "Error initializing user registration",
+    });
   }
 };
 
@@ -109,7 +115,7 @@ const verifyUserEmailAndCompleteRegistration = async (req, res) => {
     }
 
     // Encrypt phone number
-    const encryptedPhoneNumber = await encryptData(userData.phoneNumber);
+    const encryptedPhoneNumber = encryptData(userData.phoneNumber);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
@@ -129,10 +135,15 @@ const verifyUserEmailAndCompleteRegistration = async (req, res) => {
       console.log("Error creating new user: ", error);
     }
     console.log("Succesfully created new user ", newUser);
-    res.redirect("/user");
+    return res.status(200).json({
+      success: true,
+      user: newUser,
+    });
   } catch (error) {
     console.error("Error during user sign up: ", error);
-    res.status(500).json({ message: "Error during user sign up" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error during user sign up" });
   }
 };
 
@@ -207,15 +218,15 @@ const loginUser = asyncHandler(async (req, res, next) => {
       sameSite: "strict",
     });
 
+    // Decypt user Phone Number
+    const decryptedPhoneNumber = decryptData(user.phone);
+
     // Send user data with sucess status
     res.status(200).json({
       success: true,
       message: "Login Successful",
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-      },
+      user,
+      decryptedPhoneNumber,
     });
   })(req, res, next);
 });

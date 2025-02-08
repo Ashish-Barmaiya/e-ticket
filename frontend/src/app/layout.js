@@ -1,7 +1,12 @@
 // src/app/layout.js
+
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import { Geist, Geist_Mono, Onest } from "next/font/google";
-import Providers from "./providers.jsx"; // Corrected import path
+import Providers from "./providers.jsx";
 import "./globals.css";
+import Navbar from "../components/navbar.jsx";
+import SecondaryNavbar from "../components/SecondaryNavbar";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -21,7 +26,12 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${onest.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <SecondaryNavbar />
+          <Navbar />
+          <main>{children}</main>
+          <ToastContainer />
+        </Providers>
       </body>
     </html>
   );

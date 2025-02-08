@@ -4,6 +4,8 @@ const initialState = {
   user: null,
   openSignIn: false,
   openSignUp: false,
+  otpDialogOpen: false,
+  decryptedPhoneNumber: false,
 };
 
 const userSlice = createSlice({
@@ -19,8 +21,20 @@ const userSlice = createSlice({
     setSignUpOpen: (state, action) => {
       state.openSignUp = action.payload;
     },
+    setOtpDialogOpen: (state, action) => {
+      state.otpDialogOpen = action.payload;
+    },
+    setDecryptedPhoneNumber: (state, action) => {
+      state.decryptedPhoneNumber = action.payload;
+    },
   },
 });
 
-export const { setUser, setSignInOpen, setSignUpOpen } = userSlice.actions;
+export const {
+  setUser,
+  setSignInOpen,
+  setSignUpOpen,
+  setOtpDialogOpen,
+  setDecryptedPhoneNumber,
+} = userSlice.actions;
 export default userSlice.reducer;

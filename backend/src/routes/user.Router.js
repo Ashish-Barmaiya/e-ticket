@@ -90,7 +90,7 @@ router.get("/profile/edit-profile", userLoginAuth, async (req, res) => {
   });
 
   // Decrypt and Mask userPhonNumber
-  const userPhoneNumber = await decryptData(user.phone);
+  const userPhoneNumber = decryptData(user.phone);
   const maskedUserPhoneNumber =
     userPhoneNumber.substr(0, 2) + "******" + userPhoneNumber.slice(-2);
 

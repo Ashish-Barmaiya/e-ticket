@@ -1,8 +1,10 @@
-// frontend/components/SignInSignUp.jsx
-
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,22 +16,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { setUser, setSignInOpen, setSignUpOpen } from "../redux/userSlice";
-import { useEffect } from "react";
+import { useAppDispatch } from "../redux/hooks";
+import { setUser } from "../redux/userSlice";
+import { toast } from "react-toastify";
 
-const FormSchema = z.object({
+// ---------------------
+// SIGN IN FORM
+// ---------------------
+
+const SignInFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
 });
 
-function SignInForm() {
+const SignInForm = ({ onClose }) => {
   const [isError, setIsError] = useState(false);
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -39,10 +41,10 @@ function SignInForm() {
     register,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(SignInFormSchema),
   });
 
-  async function onSubmit(values) {
+  const onSubmit = async (values) => {
     setIsError(false);
     try {
       const response = await fetch("/api/user/user-sign-in", {
@@ -61,17 +63,52 @@ function SignInForm() {
       const data = await response.json();
       console.log("Login Response:", data);
       if (data.success) {
-        dispatch(setUser(data.user)); // Dispatch the setUser action
+        // Dispatch the setUser action and decrypted phone number
+        dispatch(
+          setUser({
+            user: data.user,
+            decryptedPhoneNumber: data.decryptedPhoneNumber,
+          })
+        );
         router.refresh();
-        dispatch(setSignInOpen(false)); // Close the sign-in dialog
+        toast.success("Sign In Succesful!", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        onClose();
       } else {
         setIsError(true);
+        toast.error(`Error: ${err.message}`, {
+          // Show error toast
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
       setIsError(true);
+      toast.error(`Error: ${err.message}`, {
+        // Show error toast
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
@@ -109,22 +146,200 @@ function SignInForm() {
       </Button>
     </form>
   );
-}
+};
 
-const SignInSignUp = ({ openSignIn }) => {
-  //Only accept openSignIn
+// ---------------------
+// SIGN UP FORM
+// ---------------------
+
+// SIGN UP FORM
+const SignUpFormSchema = z
+  .object({
+    name: z.string().min(1, { message: "Name is required" }),
+    email: z.string().email(),
+    phoneNumber: z.string().min(10, { message: "Invalid phone number" }),
+    password: z.string().min(8, {
+      message: "Password must be at least 8 characters.",
+    }),
+    confirmPassword: z.string().min(8),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+const SignUpForm = ({ setActiveDialog }) => {
+  const [error, setError] = useState("");
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(SignUpFormSchema),
+  });
+
+  const onSubmit = async (values) => {
+    try {
+      const response = await fetch("/api/user/user-sign-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send OTP");
+      }
+
+      setActiveDialog("otp"); // Change the active dialog to OTP
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+      {error && <div className="p-2 bg-red-200 text-red-500">{error}</div>}
+
+      <div className="space-y-2">
+        <Label htmlFor="name">Full Name</Label>
+        <Input id="name" {...register("name")} />
+        {errors?.name && (
+          <p className="text-red-500 text-sm">{errors.name.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" {...register("email")} />
+        {errors?.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phoneNumber">Phone Number</Label>
+        <Input id="phoneNumber" {...register("phoneNumber")} />
+        {errors?.phoneNumber && (
+          <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" {...register("password")} />
+        {errors?.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          {...register("confirmPassword")}
+        />
+        {errors?.confirmPassword && (
+          <p className="text-red-500 text-sm">
+            {errors.confirmPassword.message}
+          </p>
+        )}
+      </div>
+
+      <Button className="w-full" type="submit">
+        Send OTP
+      </Button>
+    </form>
+  );
+};
+
+// -----------------------
+// OTP VERIFICATION FORM
+// -----------------------
+
+// OTP VERIFICATION FORM
+const OtpVerificationForm = ({ setActiveDialog }) => {
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    //Log to confirm prop and render
-    console.log("SignInSignUp - openSignIn prop:", openSignIn);
-  }, [openSignIn]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("/api/user/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp }),
+        credentials: "include",
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Verification failed");
+      }
+
+      // Handle successful registration
+      toast.success("Account created successfully!", {
+        position: "top-right", // Adjust position as needed
+        autoClose: 3000, // Auto-close after 3 seconds (adjust as needed)
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      setActiveDialog(null);
+    } catch (err) {
+      setError(err.message);
+      toast.error(`Error: ${err.message}`, {
+        // Show error toast
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full space-y-4">
+      {error && <div className="p-2 bg-red-200 text-red-500">{error}</div>}
+
+      <div className="space-y-2">
+        <Label htmlFor="otp">Enter OTP</Label>
+        <Input
+          id="otp"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          placeholder="6-digit code"
+        />
+      </div>
+
+      <Button className="w-full" type="submit">
+        Verify OTP
+      </Button>
+    </form>
+  );
+};
+
+// -----------------------
+// RETURN COMBINED OUTPUT
+// -----------------------
+
+const SignInSignUp = ({ activeDialog, setActiveDialog }) => {
   return (
     <>
       <Dialog
-        open={openSignIn}
-        onOpenChange={(isOpen) => dispatch(setSignInOpen(isOpen))}
+        open={activeDialog === "signIn"}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setActiveDialog(null); // Close all if the dialog is intended to be closed
+        }}
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -133,20 +348,53 @@ const SignInSignUp = ({ openSignIn }) => {
               Sign in to your account to continue.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <SignInForm />
-          </div>
+          <SignInForm onClose={() => setActiveDialog(null)} />
           <div className="flex justify-center pt-2">
             <Link
               href="#"
-              onClick={() => {
-                dispatch(setSignInOpen(false));
-                dispatch(setSignUpOpen(true));
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveDialog("signUp");
               }}
             >
               Create an account
             </Link>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={activeDialog === "signUp"}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setActiveDialog(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-center">Create Account</DialogTitle>
+            <DialogDescription className="text-center">
+              Enter your details to create an account
+            </DialogDescription>
+          </DialogHeader>
+          {/* Pass setActiveDialog as a prop */}
+          <SignUpForm setActiveDialog={setActiveDialog} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={activeDialog === "otp"}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setActiveDialog(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-center">Verify OTP</DialogTitle>
+            <DialogDescription className="text-center">
+              Enter the OTP sent to your email
+            </DialogDescription>
+          </DialogHeader>
+          <OtpVerificationForm setActiveDialog={setActiveDialog} />
         </DialogContent>
       </Dialog>
     </>

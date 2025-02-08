@@ -1,3 +1,4 @@
+// Navbar.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,30 +6,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import SearchBar from "./SearchBar";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { setUser, setSignInOpen } from "../redux/userSlice";
-import { useRouter } from "next/navigation";
+import { setUser } from "../redux/userSlice";
 import SignInSignUp from "./SignInSignUp"; // Import the SignInSignUp component
+import UserProfileSheet from "./UserProfileSheet";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user); // Access user state from Redux
-  const openSignIn = useAppSelector((state) => state.user.openSignIn); // Access openSignIn state from Redux
-  const router = useRouter();
+  const [activeDialog, setActiveDialog] = useState(null);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
-  };
-
-  const handleSignOut = () => {
-    // Clear cookies, localStorage, and Redux state
-    document.cookie =
-      "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie =
-      "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    dispatch(setUser(null)); // Update Redux state
-    localStorage.removeItem("user");
-    router.refresh(); // Refresh the page to reflect the logged-out state
   };
 
   // Check for user in localStorage on component mount
@@ -103,31 +92,24 @@ const Navbar = () => {
                 Sell Tickets
               </button>
             </Link>
+            <Link href="/api/ekyc">
+              <button className="text-gray-800 hover:text-teal-600 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
+                E-Kyc
+              </button>
+            </Link>
           </div>
 
           {/* Sign In/Profile Button */}
           <div className={`lg:flex space-x-6 ${isOpen ? "block" : "hidden"} `}>
             {user ? (
               <>
-                <Button
-                  variant="outline"
-                  className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
-                >
-                  Profile
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-md bg-red-600 text-white hover:text-red-600 hover:bg-white hover:border-red-500 transition duration-300"
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </Button>
+                <UserProfileSheet />
               </>
             ) : (
               <Button
                 variant="outline"
                 className="text-md bg-teal-600 text-white hover:text-teal-600 hover:bg-white hover:border-teal-500 transition duration-300"
-                onClick={() => dispatch(setSignInOpen(true))} // Open sign-in dialog
+                onClick={() => setActiveDialog("signIn")} // Open sign-in dialog
               >
                 Sign In
               </Button>
@@ -135,8 +117,11 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
-      {/* Render the SignInSignUp component and pass the openSignIn state */}
-      <SignInSignUp openSignIn={openSignIn} />
+      {/* Render the SignInSignUp component and pass the activeDialog state */}
+      <SignInSignUp
+        activeDialog={activeDialog}
+        setActiveDialog={(newState) => setActiveDialog(newState)}
+      />
     </>
   );
 };
