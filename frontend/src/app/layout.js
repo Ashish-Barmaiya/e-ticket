@@ -1,5 +1,3 @@
-// src/app/layout.js
-
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { Geist, Geist_Mono, Onest } from "next/font/google";

@@ -25,7 +25,7 @@ import { toast } from "react-toastify";
 // ---------------------
 
 const SignInFormSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
@@ -72,9 +72,9 @@ const SignInForm = ({ onClose }) => {
         );
         router.refresh();
         toast.success("Sign In Succesful!", {
-          position: "top-center",
+          position: "bottom-right",
           autoClose: 3000,
-          hideProgressBar: false,
+          hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
@@ -152,7 +152,6 @@ const SignInForm = ({ onClose }) => {
 // SIGN UP FORM
 // ---------------------
 
-// SIGN UP FORM
 const SignUpFormSchema = z
   .object({
     name: z.string().min(1, { message: "Name is required" }),
@@ -260,11 +259,9 @@ const SignUpForm = ({ setActiveDialog }) => {
 // OTP VERIFICATION FORM
 // -----------------------
 
-// OTP VERIFICATION FORM
 const OtpVerificationForm = ({ setActiveDialog }) => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
-  const dispatch = useAppDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -341,7 +338,8 @@ const SignInSignUp = ({ activeDialog, setActiveDialog }) => {
           if (!isOpen) setActiveDialog(null); // Close all if the dialog is intended to be closed
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        {/* Sign In Dialog */}
+        <DialogContent className="sm:max-w-[425px] border-4 border-teal-600 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">Sign In</DialogTitle>
             <DialogDescription className="text-center">
@@ -363,13 +361,14 @@ const SignInSignUp = ({ activeDialog, setActiveDialog }) => {
         </DialogContent>
       </Dialog>
 
+      {/* Sign Up Dialog */}
       <Dialog
         open={activeDialog === "signUp"}
         onOpenChange={(isOpen) => {
           if (!isOpen) setActiveDialog(null);
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-4 border-teal-600 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">Create Account</DialogTitle>
             <DialogDescription className="text-center">
@@ -381,13 +380,14 @@ const SignInSignUp = ({ activeDialog, setActiveDialog }) => {
         </DialogContent>
       </Dialog>
 
+      {/* Verify-OTP Dialog */}
       <Dialog
         open={activeDialog === "otp"}
         onOpenChange={(isOpen) => {
           if (!isOpen) setActiveDialog(null);
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] border-4 border-teal-600 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">Verify OTP</DialogTitle>
             <DialogDescription className="text-center">

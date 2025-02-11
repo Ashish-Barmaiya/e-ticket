@@ -111,6 +111,9 @@ router.post(
 // USER MY-TICKETS GET ROUTE //
 router.get("/profile/my-tickets", userLoginAuth, myTickets);
 
+// USER VIEW TICKET GET ROUTE //
+router.get("/profile/my-tickets/view-ticket/:ticketId", userLoginAuth);
+
 // USER CANCEL TICKET GET ROUTE //
 router.get(
   "/profile/my-tickets/cancel-ticket/:ticketId",
@@ -256,7 +259,10 @@ router.post(
 router.get("/user-sign-out", (req, res) => {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
-  res.redirect("/user/user-sign-in");
+  return res.status(200).json({
+    success: true,
+    message: "User logged out successfully",
+  });
 });
 
 export default router;

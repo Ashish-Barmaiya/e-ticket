@@ -36,9 +36,10 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
     });
 
     if (existingUser && existingUser.emailVerification === true) {
-      return res
-        .status(400)
-        .json({ message: "User already exists with this email" });
+      return res.status(400).json({
+        success: false,
+        message: "User already exists with this email",
+      });
     }
 
     // Encrypt phone number & check if phone number has already been taken
@@ -46,7 +47,9 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
 
     if (!encryptedPhoneNumber) {
       console.log("Error encrypting phone number");
-      return res.status(500).json({ message: "Error encrypting phone number" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Error encrypting phone number" });
     }
 
     const isPhoneNumberAlreadyused = await prisma.user.findFirst({
@@ -55,9 +58,10 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
 
     if (isPhoneNumberAlreadyused) {
       console.log("Phone number has already been used");
-      return res
-        .status(400)
-        .json({ message: "Phone number has already been used" });
+      return res.status(400).json({
+        success: false,
+        message: "Phone number has already been used",
+      });
     }
 
     // Generate otp
@@ -72,7 +76,9 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
 
     if (!sendOtp) {
       console.log("Error sending otp via email");
-      return res.status(500).json({ message: "Error sending email" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Error sending email" });
     }
 
     // Store otpData in session for verification later
@@ -91,6 +97,7 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error initializing user registration",
+      error,
     });
   }
 };
@@ -105,13 +112,15 @@ const verifyUserEmailAndCompleteRegistration = async (req, res) => {
     // Check if OTP has expired
     if (Date.now() > otpData.expiresAt) {
       console.log("OTP has expired");
-      return res.status(400).json({ message: "OTP has expired" });
+      return res
+        .status(400)
+        .json({ success: false, message: "OTP has expired" });
     }
 
     // Verify OTP
     if (Number(otp) !== otpData.otp) {
       console.log("Invalid OTP");
-      return res.status(401).json({ message: "Inavalid OTP" });
+      return res.status(401).json({ success: false, message: "Inavalid OTP" });
     }
 
     // Encrypt phone number
@@ -143,7 +152,7 @@ const verifyUserEmailAndCompleteRegistration = async (req, res) => {
     console.error("Error during user sign up: ", error);
     res
       .status(500)
-      .json({ success: false, message: "Error during user sign up" });
+      .json({ success: false, message: "Error during user sign up", error });
   }
 };
 
@@ -351,11 +360,13 @@ const myTickets = async (req, res) => {
       },
     });
 
-    if (!allTickets)
+    if (!allTickets) {
       return res.status(404).json({ message: "No ticket found" });
-
-    return res.render("userPages/userTickets", {
-      allTickets: allTickets,
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Successfully fetched user my-tickets",
+      tickets: allTickets,
     });
   } catch (error) {
     console.error("Error fetching user tickets: ", error);

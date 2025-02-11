@@ -1,7 +1,5 @@
 "use client";
 
-import Navbar from "../components/navbar";
-import SecondaryNavbar from "../components/SecondaryNavbar";
 import Footer from "../components/Footer";
 import CarouselWithSidebar from "../components/CarouselWithSidebar.jsx";
 import EventSlider from "../components/EventSlider";

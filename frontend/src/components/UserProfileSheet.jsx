@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sheet,
+  SheetClose,
   SheetTrigger,
   SheetContent,
   SheetHeader,
@@ -13,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { setUser, setSignInOpen } from "../redux/userSlice";
+import { toast } from "react-toastify";
 
 export default function UserProfileSheet() {
   const dispatch = useAppDispatch();
@@ -23,16 +26,53 @@ export default function UserProfileSheet() {
     user.decryptedPhoneNumber.slice(-2);
 
   const router = useRouter();
+  const [isError, setIsError] = useState(false);
 
-  const handleSignOut = () => {
-    // Clear cookies, localStorage, and Redux state
-    document.cookie =
-      "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie =
-      "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    dispatch(setUser(null)); // Update Redux state
-    localStorage.removeItem("user");
-    router.refresh(); // Refresh the page to reflect the logged-out state
+  const handleSignOut = async () => {
+    const response = await fetch("/api/user/user-sign-out", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      setIsError(true);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Clear cookies, localStorage, and Redux state
+      document.cookie =
+        "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      dispatch(setUser(null)); // Update Redux state
+      localStorage.removeItem("user");
+      router.refresh(); // Refresh the page to reflect the logged-out state
+      toast.success("User Signed Out", {
+        position: "bottom-right",
+        autoClose: 2500,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } else {
+      setIsError(true);
+      toast.error(`Error: ${err.message}`, {
+        // Show error toast
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   return (
@@ -65,12 +105,14 @@ export default function UserProfileSheet() {
                       </span>
                     ) : (
                       <span>
-                        <Link
-                          href="/api/user/profile/"
-                          className="text-blue-800 tracking-wider hover:underline"
-                        >
-                          <p className="px-1">Verify Phone Number</p>
-                        </Link>
+                        <SheetClose asChild>
+                          <Link
+                            href="/user/profile/"
+                            className="text-blue-800 tracking-wider hover:underline"
+                          >
+                            <p className="px-1">Verify Phone Number</p>
+                          </Link>
+                        </SheetClose>
                       </span>
                     )}
                   </div>
@@ -78,92 +120,104 @@ export default function UserProfileSheet() {
                     <ul className="space-y-3">
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/edit-profile"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/edit_profile_icon.png"
-                              alt="edit_profile"
-                              className="w-6 h-6 mr-2 object-contain"
-                            />
-                            <p className="px-1">Edit Profile</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/edit-profile"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/edit_profile_icon.png"
+                                alt="edit_profile"
+                                className="w-6 h-6 mr-2 object-contain"
+                              />
+                              <p className="px-1">Edit Profile</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/user-ekyc"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/kyc_icon.png"
-                              alt="kyc"
-                              className="w-6 h- mr-2 object-contain"
-                            />
-                            <p className="px-1">E-Kyc</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/user-ekyc"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/kyc_icon.png"
+                                alt="kyc"
+                                className="w-6 h- mr-2 object-contain"
+                              />
+                              <p className="px-1">E-Kyc</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/my-tickets"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/my_tickets_icon.png"
-                              alt="my_tickets"
-                              className="w-6 h- mr-2 object-contain"
-                            />
-                            <p className="px-1">My Tickets</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/my-tickets"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/my_tickets_icon.png"
+                                alt="my_tickets"
+                                className="w-6 h- mr-2 object-contain"
+                              />
+                              <p className="px-1">My Tickets</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/user-change-password"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/password_icon.png"
-                              alt="my_tickets"
-                              className="w-6 h- mr-2 object-contain"
-                            />
-                            <p className="px-1">Change Password</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/user-change-password"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/password_icon.png"
+                                alt="my_tickets"
+                                className="w-6 h- mr-2 object-contain"
+                              />
+                              <p className="px-1">Change Password</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/payment-methods"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/payment_icon.png"
-                              alt="payment"
-                              className="w-6 h-6 mr-2 object-contain"
-                            />
-                            <p className="px-1">Payments</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/payment-methods"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/payment_icon.png"
+                                alt="payment"
+                                className="w-6 h-6 mr-2 object-contain"
+                              />
+                              <p className="px-1">Payments</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
                         <div className="flex items-center">
-                          <Link
-                            href="/api/user/profile/notifications"
-                            className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
-                          >
-                            <img
-                              src="./icons/notification_icon.png"
-                              alt="notification"
-                              className="w-6 h-6 mr-2 object-contain"
-                            />
-                            <p className="px-1">Notifications</p>
-                          </Link>
+                          <SheetClose asChild>
+                            <Link
+                              href="/user/profile/notifications"
+                              className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
+                            >
+                              <img
+                                src="/icons/notification_icon.png"
+                                alt="notification"
+                                className="w-6 h-6 mr-2 object-contain"
+                              />
+                              <p className="px-1">Notifications</p>
+                            </Link>
+                          </SheetClose>
                         </div>
                       </li>
                       <li>
@@ -174,7 +228,7 @@ export default function UserProfileSheet() {
                             onClick={handleSignOut}
                           >
                             <img
-                              src="./icons/signout_icon.png"
+                              src="/icons/signout_icon.png"
                               alt="sign_out"
                               className="w-6 h-6 mr-2 object-contain"
                             />

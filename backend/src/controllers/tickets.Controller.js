@@ -31,11 +31,11 @@ class TicketController {
         // Fetching event details to get the price and ticketsAvailable
         const event = await prisma.event.findUnique({
           where: { id: eventId },
-          // select: {
-          //   price: true,
-          //   ticketsAvailable: true,
-          //   seatsAvailable: true,
-          // },
+          select: {
+            price: true,
+            ticketsAvailable: true,
+            seatsAvailable: true,
+          },
         });
 
         if (!event) {
@@ -92,7 +92,6 @@ class TicketController {
               uniqueUserIdentity: user.uniqueUserIdentity,
             },
           });
-
           // Update ticketsAvailable and seatsAvailable
           await prisma.event.update({
             where: { id: eventId },
@@ -104,6 +103,7 @@ class TicketController {
 
           return createdTicket;
         } else {
+          /* Condition 3 - user ekyc not required by the event */
           // Create the ticket
           const createdTicket = await prisma.ticket.create({
             data: {
@@ -129,7 +129,12 @@ class TicketController {
       });
 
       console.log("Ticket created successfully:", result);
-      return res.redirect(`/events/ticket/${result.id}`);
+      // return res.redirect(`/events/ticket/${result.id}`);
+      return res.status(200).json({
+        success: true,
+        message: "Ticket purchased successfully",
+        ticket: result,
+      });
     } catch (error) {
       console.error("Error creating ticket:", error.message);
       return res.status(400).json({ message: error.message });
@@ -205,7 +210,7 @@ class TicketController {
   // METHOD TO CANCEL TICKET //
   static async cancelTicket(req, res) {
     try {
-      // Identify which ticket to cancel through req (figure out how to do this)
+      // Identify which ticket to cancel through req
       const { ticketId } = req.params;
       const { email, reason } = req.body;
 
@@ -273,12 +278,16 @@ class TicketController {
       });
 
       return res.status(200).json({
+        success: true,
         message: "Ticket successfully cancelled",
         result,
       });
     } catch (error) {
       console.log("Error cancelling ticket: ", error.message);
-      return res.status(500).json({ message: error.message });
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
   }
 }
