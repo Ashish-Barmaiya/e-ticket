@@ -80,8 +80,8 @@ export default function UserProfileSheet() {
       {/* The trigger button appears in the navbar */}
       <SheetTrigger asChild>
         <Button
-          variant="ghost"
-          className="text-lg underline  border-gray-600 text-gray-800  hover:bg-white hover:border-teal-500 hover:border transition duration-300"
+          variant="outline"
+          className="text-lg underline tracking-wider border-gray-600 text-teal-700  hover:bg-white hover:border-teal-500 hover:border transition duration-300"
         >
           Profile
         </Button>

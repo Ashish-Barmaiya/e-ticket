@@ -5,24 +5,39 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import TicketCard from "@/components/custom/TicketCard";
-import SignInAlert from "@/components/custom/SignInAlert";
+import {
+  SignInAlert,
+  TicketCancelledAlert,
+} from "@/components/custom/AlertComponents";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 export default function MyTickets() {
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [ticketCancelled, setTicketCancelled] = useState(false);
+  const [cancelledTicketId, setCancelledTicketId] = useState(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -98,15 +113,59 @@ export default function MyTickets() {
 
   if (!tickets || tickets.length === 0) {
     return (
-      <div>
+      <div className="mt-24 pt-4 px-10">
         <Head>
           <title>No Tickets Found</title>
         </Head>
-        <h1>Your Tickets</h1>
+        <div className="pb-4 px-10 font-semibold text-5xl text-black/85 mb-4">
+          <h1>Your Tickets</h1>
+        </div>
         <p>No active tickets found.</p>
       </div>
     );
   }
+
+  // Function to handle cancellation form submission
+  const handleCancelSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedTicket) return;
+
+    try {
+      const response = await fetch(
+        `/api/user/profile/my-tickets/cancel-ticket/${selectedTicket.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ticketId: selectedTicket.id,
+            reason: cancelReason,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Ticket cancelled successfully");
+        // Store cancelled ticket id
+        setCancelledTicketId(selectedTicket.id);
+        // Close the drawer by clearing the selected ticket,
+        // and show the cancellation alert.
+        setSelectedTicket(null);
+        setTicketCancelled(true);
+      } else {
+        const errorData = await response.json();
+        console.error("Cancellation failed:", errorData.message);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+    } finally {
+      // Close the cancellation dialog and reset the reason input.
+      setIsCancelDialogOpen(false);
+      setCancelReason("");
+    }
+  };
 
   return (
     <div className="mt-24 pt-4 px-10">
@@ -114,6 +173,12 @@ export default function MyTickets() {
         <Head>
           <title>My Tickets</title>
         </Head>
+
+        {/* Show TicketCancelledAlert if ticket cancellation was successful */}
+        {ticketCancelled && cancelledTicketId && (
+          <TicketCancelledAlert ticketId={cancelledTicketId} />
+        )}
+
         <div className="pb-4 px-10 font-semibold text-5xl text-black/85 mb-4">
           <h1>Your Tickets</h1>
         </div>
@@ -194,29 +259,60 @@ export default function MyTickets() {
                               <p>Status: {selectedTicket.status}</p>
                             </div>
                             <div className="flex gap-10 py-4">
-                              <Link
-                                href={`/user/profile/my-tickets/cancel-ticket/${selectedTicket.id}`}
+                              <Dialog
+                                open={isCancelDialogOpen}
+                                onOpenChange={setIsCancelDialogOpen}
                               >
-                                <Button
-                                  variant="outline"
-                                  className="text-black hover:bg-teal-700 hover:text-white"
-                                >
-                                  Cancel Ticket
-                                </Button>
-                              </Link>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="text-black hover:bg-teal-700 hover:text-white"
+                                    onClick={() => {
+                                      // Optionally set the selected ticket here if needed
+                                      setIsCancelDialogOpen(true);
+                                    }}
+                                  >
+                                    Cancel Ticket
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="bg-white p-6 rounded-md">
+                                  <DialogTitle className="text-3xl text-center tracking-wider font-bold text-black/80">
+                                    Cancel Ticket
+                                  </DialogTitle>
+                                  <DialogDescription className="text-center tracking-wide">
+                                    Please provide a reason for cancellation:
+                                  </DialogDescription>
+                                  <form onSubmit={handleCancelSubmit}>
+                                    <input
+                                      type="text"
+                                      value={cancelReason}
+                                      onChange={(e) =>
+                                        setCancelReason(e.target.value)
+                                      }
+                                      placeholder="Cancellation reason"
+                                      required
+                                      className="border p-2 w-full rounded-md"
+                                    />
+                                    <div className="flex gap-2 justify-end mt-4">
+                                      <Button type="submit">Submit</Button>
+                                      <DialogClose asChild>
+                                        <Button variant="ghost">Cancel</Button>
+                                      </DialogClose>
+                                    </div>
+                                  </form>
+                                </DialogContent>
+                              </Dialog>
 
-                              <Link href={`/resell-ticket`}>
-                                <Button
-                                  variant="outline"
-                                  className="text-black hover:bg-teal-700 hover:text-white"
-                                >
-                                  Resell Ticket
-                                </Button>
-                              </Link>
+                              <Button
+                                variant="outline"
+                                className="text-black hover:bg-teal-700 hover:text-white"
+                              >
+                                Resell Ticket
+                              </Button>
+                              {/* </Link> */}
                             </div>
                           </div>
                         </div>
-
                         <DrawerFooter>
                           <div className="flex justify-end">
                             <DrawerClose asChild>

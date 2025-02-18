@@ -5,6 +5,7 @@ import express from "express";
 import {
   registerHost,
   loginHost,
+  getHostData,
   addVenue,
   hostChangePassword,
 } from "../controllers/host.Controller.js";
@@ -47,14 +48,10 @@ router.get("/hostlogin", (req, res) => {
 });
 
 // HOST LOGIN PAGE POST ROUTE //
-router.route("/hostlogin").post(validate(hostLoginValidator), loginHost);
+router.post("/hostlogin", validate(hostLoginValidator), loginHost);
 
 // HOST DASHBOARD GET ROUTE //
-router.get("/dashboard", hostLoginAuth, (req, res) => {
-  res.status(200).render("hostDashboard", {
-    host: req.user,
-  });
-});
+router.get("/dashboard/:path?", hostLoginAuth, getHostData);
 
 // HOST EDIT PROFILE GET ROUTE //
 router.get("/dashboard/edit-profile", hostLoginAuth, (req, res) => {
@@ -64,59 +61,18 @@ router.get("/dashboard/edit-profile", hostLoginAuth, (req, res) => {
 });
 
 // VENUE GET ROUTE //
-router.get("/dashboard/venue", hostLoginAuth, async (req, res) => {
-  const venue = await prisma.venueInformation.findFirst({
-    where: { hostId: req.params.hostId },
-  });
-  res.render("hostPages/venuePage", {
-    host: req.user,
-    venue: JSON.stringify(venue),
-  });
-});
-
-// ADD VENUE GET ROUTE //
-router.get("/dashboard/venue/add-venue", hostLoginAuth, async (req, res) => {
-  const venues = await prisma.venueInformation.findMany({
-    where: { hostId: req.params.hostId },
-  });
-  res.render("hostPages/addvenuePage", {
-    host: req.user,
-    venues,
-  });
-});
+// router.get("/dashboard/venue", hostLoginAuth, getVenues);
 
 // ADD VENUE POST ROUTE //
 router.post("/dashboard/venue/add-venue", hostLoginAuth, addVenue);
 
-// LIST NEW EVENT GET ROUTE //
-router.get("/dashboard/list-new-events", hostLoginAuth, (req, res) => {
-  res.render("eventPages/newEventPage", {
-    host: req.user,
-  });
-});
-
 // LIST NEW EVENT POST ROUTE //
 router.post(
-  "/dashboard/list-new-events",
+  "/dashboard/list-new-event",
   hostLoginAuth,
   validate(newEventValidator),
   newEvent,
 );
-
-// RESCHEDULE EVENT GET ROUTE //
-router.get("/dashboard/reschedule-events", hostLoginAuth, (req, res) => {
-  res.status(200).send("This is Reschedule Event Page");
-});
-
-// CANCEL EVENT GET ROUTE //
-router.get("/dashboard/cancel-events", hostLoginAuth, (req, res) => {
-  res.status(200).send("This is Cancel Event Page");
-});
-
-// HOST CHANGE-PASSWORD GET ROUTE //
-router.get("/dashboard/host-change-password", hostLoginAuth, (req, res) => {
-  res.render("hostPages/hostChangePassword");
-});
 
 // HOST CHANGE-PASSWORD POST ROUTE //
 router.post(
@@ -130,7 +86,10 @@ router.post(
 router.get("/hostlogout", (req, res) => {
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
-  res.redirect("/host/hostlogin");
+  return res.status(200).json({
+    success: true,
+    message: "Host logged out successfully",
+  });
 });
 
 export default router;

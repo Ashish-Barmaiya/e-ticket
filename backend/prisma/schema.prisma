@@ -80,7 +80,7 @@ model VenueInformation {
   lattitude            Float?
   longitude            Float?
   seatingCapacity      Int
-  seatingCategories    String
+  seatingCategories    String?
   seatingLayout        String
   venueType            String
   facilities           Json?
@@ -239,12 +239,12 @@ model Event {
   ticketsAvailable    Int
   seatsAvailable      String[] // Newly added
   price               Float // Ticket price per person
-  status              String                @default("Scheduled") // e.g., Scheduled, Canceled
+  status              String                @default("Scheduled") // e.g., Scheduled, Canceled, Expired
   userEkycRequired    Boolean               @default(false)
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   host                Hosts                 @relation(fields: [hostId], references: [id])
-  venueInformation    VenueInformation?     @relation(fields: [venueId], references: [id])
+  venueInformation    VenueInformation      @relation(fields: [venueId], references: [id])
   ticket              Ticket[] // Relation to tickets sold for this event
   TicketCancellations TicketCancellations[]
 }

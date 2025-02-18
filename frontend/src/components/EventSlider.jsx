@@ -42,18 +42,18 @@ const EventSlider = () => {
   ];
 
   return (
-    <div className="w-full mt-12 pb-4 ">
+    <div className="w-full mt-12 pb-4 text-center tracking-wider">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 px-1 pt-1 rounded-md">
         Upcoming Events
       </h2>
 
       {/* Horizontal Scroll Wrapper */}
       <div className="relative w-full overflow-hidden">
-        <div className="flex gap-5 overflow-x-auto scroll-smooth scrollbar-hide">
+        <div className="flex justify-center gap-5 overflow-x-auto scroll-smooth scrollbar-hide">
           {events.map((event, index) => (
             <Link key={index} href={event.link} passHref>
               <div
-                className="min-w-[300px] h-[400px] bg-gray-900 text-white rounded-lg shadow-lg p-4 flex flex-col justify-end transform transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-2 hover:shadow-2xl overflow-hidden"
+                className="min-w-[200px] h-[300px] bg-gray-900 text-white rounded-lg shadow-lg p-4 flex flex-col justify-end transform transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-2 hover:shadow-2xl overflow-hidden"
                 style={{
                   backgroundImage: `url(${event.image})`,
                   backgroundSize: "cover",

@@ -13,21 +13,26 @@ class TicketController {
 
   // METHOD TO BUY A TICKET (GENERATE A TICKET) //
   static async buyTicket(req, res) {
+    let result;
+
+    // Get user using refreshToken
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized. Please login" });
+    }
+
+    const totalTickets = parseInt(req.body.totalSeats);
+    const UserEnteredSeatNumbers = req.body.seatNumber;
+    const userId = user.id;
+    const eventId = parseInt(req.params.eventId, 10);
+
     try {
-      // Get user using refreshToken
-      const user = await prisma.user.findFirst({
-        where: { refreshToken: req.cookies.refreshToken },
-      });
-
-      if (!user) {
-        return res.status(400).json({ message: "User not signed in" });
-      }
-
-      const seatNumber = req.body.seatNumber; // Getting seatNumber from frontend
-      const userId = user.id; // Getting userId from user object
-      const eventId = parseInt(req.params.eventId, 10); // Getting eventId from params
-
-      const result = await prisma.$transaction(async (prisma) => {
+      result = await prisma.$transaction(async (prisma) => {
         // Fetching event details to get the price and ticketsAvailable
         const event = await prisma.event.findUnique({
           where: { id: eventId },
@@ -42,18 +47,41 @@ class TicketController {
           throw new Error("Event not found");
         }
 
-        let { ticketsAvailable, price, seatsAvailable } = event;
-
-        if (ticketsAvailable === 0) {
-          throw new Error("Tickets sold out.");
+        if (event.ticketsAvailable === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Tickets sold out",
+          });
         }
 
-        // Ensure seatNumber is a string or null
-        const validSeatNumber = seatNumber ? String(seatNumber) : null;
+        // Check if enough tickets are available
+        if (event.ticketsAvailable < totalTickets) {
+          return res.status(400).json({
+            success: false,
+            message: "Not enough tickets available",
+          });
+        }
 
-        // Check if the seat number is already booked
-        if (!validSeatNumber || !seatsAvailable.includes(validSeatNumber)) {
-          throw new Error("Seat already booked or not available");
+        let assignedSeatNumbers = [];
+
+        if (!UserEnteredSeatNumbers || UserEnteredSeatNumbers.length === 0) {
+          // Assign seats in ascending order
+          assignedSeatNumbers = event.seatsAvailable.slice(0, totalTickets);
+        } else {
+          // Validate provided seat numbers
+          const invalidSeats = UserEnteredSeatNumbers.filter(
+            (seat) => !event.seatsAvailable.includes(seat),
+          );
+
+          if (invalidSeats.length > 0) {
+            return res.status(400).json({
+              success: false,
+              message: `The following seats are not available: ${invalidSeats.join(
+                ", ",
+              )}`,
+            });
+          }
+          assignedSeatNumbers = UserEnteredSeatNumbers;
         }
 
         // Get the current max ticket number for the event
@@ -64,16 +92,12 @@ class TicketController {
 
         const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
 
-        // Update seatsAvailable array removing booked seat number
-        const updatedSeatsAvailable = seatsAvailable.filter(
-          (seat) => seat !== validSeatNumber,
-        );
-
         // Check eKyc conditions
         /* Condition 1 */
         if (event.userEkycRequired === true && user.eKyc === false) {
           console.log("User eKyc is not completed");
           return res.status(403).send({
+            success: false,
             message:
               "User e-Kyc is mandatory to buy tickets of this event. Complete your Aadhaar e-Kyc",
           });
@@ -81,63 +105,100 @@ class TicketController {
         /* Condition 2 */
         if (event.userEkycRequired === true && user.eKyc === true) {
           // Create the ticket
-          const createdTicket = await prisma.ticket.create({
-            data: {
-              ticketNumber: ticketNumber,
-              userId: userId,
-              eventId: eventId,
-              price: price,
-              seatNumber: validSeatNumber,
-              userEkycRequired: true,
-              uniqueUserIdentity: user.uniqueUserIdentity,
-            },
-          });
+          let createdTickets = [];
+          for (let i = 0; i < totalTickets; i++) {
+            const seatNumber = assignedSeatNumbers[i];
+            const createdTicket = await prisma.ticket.create({
+              data: {
+                ticketNumber: ticketNumber,
+                userId: userId,
+                eventId: eventId,
+                price: event.price,
+                seatNumber: seatNumber,
+                userEkycRequired: true,
+                uniqueUserIdentity: user.uniqueUserIdentity,
+              },
+            });
+            createdTickets.push(createdTicket);
+          }
+
+          // Update seatsAvailable array removing booked seat number
+          const updatedSeatsAvailable = event.seatsAvailable.filter(
+            (seat) => !assignedSeatNumbers.includes(seat),
+          );
+
           // Update ticketsAvailable and seatsAvailable
           await prisma.event.update({
             where: { id: eventId },
             data: {
-              ticketsAvailable: ticketsAvailable - 1,
+              ticketsAvailable: event.ticketsAvailable - 1,
               seatsAvailable: updatedSeatsAvailable,
             },
           });
 
-          return createdTicket;
+          return createdTickets;
         } else {
           /* Condition 3 - user ekyc not required by the event */
-          // Create the ticket
-          const createdTicket = await prisma.ticket.create({
-            data: {
-              ticketNumber: ticketNumber,
-              userId: userId,
-              eventId: eventId,
-              price: price,
-              seatNumber: validSeatNumber,
-            },
-          });
+          // Create tickets
+          let createdTickets = [];
+          for (let i = 0; i < totalTickets; i++) {
+            const seatNumber = assignedSeatNumbers[i];
+            const createdTicket = await prisma.ticket.create({
+              data: {
+                ticketNumber: ticketNumber,
+                userId: userId,
+                eventId: eventId,
+                price: event.price,
+                seatNumber: seatNumber,
+              },
+            });
+            createdTickets.push(createdTicket);
+          }
 
-          // Update ticketsAvailable and seatsAvailable
+          // Update event's ticketsAvailable and seatsAvailable
+          const updatedSeatsAvailable = event.seatsAvailable.filter(
+            (seat) => !assignedSeatNumbers.includes(seat),
+          );
+
           await prisma.event.update({
             where: { id: eventId },
             data: {
-              ticketsAvailable: ticketsAvailable - 1,
+              ticketsAvailable: event.ticketsAvailable - totalTickets,
               seatsAvailable: updatedSeatsAvailable,
             },
           });
 
-          return createdTicket;
+          return createdTickets;
         }
       });
 
-      console.log("Ticket created successfully:", result);
-      // return res.redirect(`/events/ticket/${result.id}`);
-      return res.status(200).json({
+      console.log("Tickets created successfully:", result);
+      return res.status(201).json({
         success: true,
-        message: "Ticket purchased successfully",
+        message: "Tickets purchased successfully",
         ticket: result,
       });
     } catch (error) {
-      console.error("Error creating ticket:", error.message);
-      return res.status(400).json({ message: error.message });
+      console.error("Error occurred after transaction commit:", error);
+
+      // Assuming `result` holds the array of created tickets.
+      if (result && result.length > 0) {
+        try {
+          await prisma.ticket.deleteMany({
+            where: {
+              id: { in: result.map((ticket) => ticket.id) },
+            },
+          });
+          console.log("Cleaned up orphaned tickets.");
+        } catch (cleanupError) {
+          console.error("Error cleaning up orphaned tickets:", cleanupError);
+        }
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error, cleanup attempted.",
+      });
     }
   }
 
@@ -210,9 +271,8 @@ class TicketController {
   // METHOD TO CANCEL TICKET //
   static async cancelTicket(req, res) {
     try {
-      // Identify which ticket to cancel through req
-      const { ticketId } = req.params;
-      const { email, reason } = req.body;
+      // Identify which ticket to cancel
+      const { ticketId, reason } = req.body;
 
       // Get user using cookies
       const user = await prisma.user.findFirst({
@@ -220,12 +280,16 @@ class TicketController {
       });
 
       if (!user) {
-        return res.status(401).json({ message: "User not signed in" });
+        return res
+          .status(401)
+          .json({ success: false, message: "User not signed in" });
       }
 
-      if (email !== user.email) {
-        return res.status(400).json({ message: "Email does not match" });
-      }
+      // if (email !== user.email) {
+      //   return res
+      //     .status(400)
+      //     .json({ success: false, message: "Email does not match" });
+      // }
 
       const result = await prisma.$transaction(async (prisma) => {
         // Fetch ticket with event details
@@ -279,7 +343,7 @@ class TicketController {
 
       return res.status(200).json({
         success: true,
-        message: "Ticket successfully cancelled",
+        message: "Ticket cancelled successfully",
         result,
       });
     } catch (error) {

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { validationResult } from "express-validator";
+import { check, validationResult } from "express-validator";
+import { redisClient } from "../../app.js";
 
 const prisma = new PrismaClient();
 
@@ -7,35 +8,53 @@ const prisma = new PrismaClient();
 const eventHomePage = async (req, res) => {
   try {
     const events = await prisma.event.findMany({
+      where: { status: "Scheduled" },
       include: {
         venueInformation: true,
         host: true,
       },
     });
 
-    // Checking if there are any events in the database
     if (!events || events.length === 0) {
-      return res.render("eventPages/events", {
-        message: "No events available at the moment.", // You can customize this message
+      return res.status(404).json({
+        success: false,
+        message: "No events found",
       });
     }
 
-    // Rendering events page with event data
-    res.render("eventPages/events", {
-      events: events, // Passing all events to the EJS template
+    // return success
+    return res.status(200).json({
+      success: true,
+      message: "Events fetched successfully",
+      events,
     });
   } catch (error) {
     console.error("Error fetching events:", error);
-    res.status(500).json({ message: "Error fetching events." });
+    res.status(500).json({ success: false, message: "Error fetching events." });
   }
 };
 
 /// EVENT DETAILS PAGE CONTROLLER //
 const eventDetailsPage = async (req, res) => {
-  console.log("Received request for event ID:", req.params.eventId); // Check if this log appears
+  console.log("Received request for event ID:", req.params.eventId);
   try {
     const { eventId } = req.params;
-    // Checking for the event
+
+    // Create redis key for event from eventId
+    const eventDetailsCacheKey = `event_id:${eventId}`;
+
+    // Check if event details are available in redis cache
+    const eventDetailsCachedData = await redisClient.get(eventDetailsCacheKey);
+
+    if (eventDetailsCachedData) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetching data from cache",
+        event: JSON.parse(eventDetailsCachedData),
+      });
+    }
+
+    // If data does not exist on cache, fetch from database
     const event = await prisma.event.findUnique({
       where: { id: Number(eventId) },
       include: {
@@ -43,17 +62,26 @@ const eventDetailsPage = async (req, res) => {
         host: true,
       },
     });
-    // If event does not exits
+
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
     }
-    // Rendering event-details template
-    res.render("eventPages/eventDetails", {
-      event: event,
+
+    // Store data in redis for one hour
+    await redisClient.setEx(eventDetailsCacheKey, 3600, JSON.stringify(event));
+
+    return res.status(200).json({
+      success: true,
+      message: "Event details fetched successfully",
+      event,
     });
   } catch (error) {
     console.error("Error fetching event:", error);
-    res.status(500).json({ message: "Error fetching event details" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching event details" });
   }
 };
 
@@ -63,21 +91,24 @@ const newEvent = async (req, res) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     console.log("Error validating data:", validationErrors.array());
-    return res.status(400).json({ errors: validationErrors.array() });
+    return res
+      .status(400)
+      .json({ success: false, errors: validationErrors.array() });
   }
+
   // Getting data from the form
   const {
     title,
     description,
     artist,
-    poster,
+    // poster,
     venue,
     date,
     startTime,
     endTime,
     totalTickets,
     price,
-    userEkycRequired,
+    userEkycRequired, // get this as boolean from frontend
   } = req.body;
 
   // Getting Host Id using cookies
@@ -85,33 +116,34 @@ const newEvent = async (req, res) => {
     where: { refreshToken: req.cookies.refreshToken },
   });
 
+  if (!host) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized. Please login",
+    });
+  }
+
   // Checking whether host has added venues or not
-  const checkVenue = await prisma.venueInformation.findFirst({
+  const allVenuesOfHost = await prisma.venueInformation.findMany({
     where: { hostId: host.id },
   });
 
   // If there is no venue added by host, throw an error
-  if (!checkVenue) {
-    console.error(
-      "Cannot find any venue listed under this host. Host has not added any venue yet.",
-    );
+  if (allVenuesOfHost.length === 0) {
     return res.status(400).json({
+      success: false,
       message:
         "You have not added any Venue. Add Venue before creating an event.",
     });
   }
 
-  // If venues has been added by the host, check further whether the venue chosen by host exits or not
-  if (venue !== checkVenue.name) {
-    // If venue does not match with the one chosen by the host, throw an error
-    console.error("Venue does not match");
-    return res.status(404).json({ message: "Venue does not match" });
-  }
-
-  // If venue matches, proceed further
-  console.log(
-    `Venue name provided by user matched venue name in database. Venue Name is ${venue}, Venue in database is ${checkVenue.name}. Venue id is ${checkVenue.id}`,
+  // Find the chosen venue from the host's venues using the venue name
+  const chosenVenue = allVenuesOfHost.find(
+    (venueItem) => venueItem.name === venue,
   );
+  if (!chosenVenue) {
+    return res.status(400).json({ message: "The chosen venue does not exist" });
+  }
 
   try {
     // Parsing date and time strings into date objects
@@ -129,20 +161,23 @@ const newEvent = async (req, res) => {
       (eventEndTime && isNaN(eventEndTime.getTime()))
     ) {
       console.log("One or more dates are invalid");
-      return res.status(400).json({ message: "Invalid date or time format" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid date or time format" });
     }
+
     // Checking if an event at the same dateTime at the same venue already exists
     const existingEvent = await prisma.event.findFirst({
       where: {
         date: eventDate,
         startTime: eventStartTime,
-        venueId: checkVenue.id,
+        venueId: chosenVenue.id, // Use the chosen venue's ID
       },
     });
     // If event exists, throw an error
     if (existingEvent) {
-      console.error("Event already exists:", existingEvent);
-      return res.status(400).json({
+      return res.status(409).json({
+        success: false,
         message:
           "Event already exists at the same venue at the same date and time",
       });
@@ -151,46 +186,46 @@ const newEvent = async (req, res) => {
     // Function to convert totalTickets into individual seat numbers
     async function convertTicketToSeat(totalTickets) {
       const seatsAvailable = [];
-
       for (let i = 1; i <= totalTickets; i++) {
         seatsAvailable.push(i.toString());
       }
-
       return seatsAvailable;
     }
     const seatsAvailable = await convertTicketToSeat(totalTickets);
 
-    // If not, proceed to create a new event
+    // Create a new event
     const createNewEvent = await prisma.event.create({
       data: {
         title,
         description,
         artist,
-        poster,
         date: eventDate, // Using the parsed eventDate
         startTime: eventStartTime, // Using the parsed start time
         endTime: eventEndTime, // Using the parsed end time
         ticketsAvailable: parseInt(totalTickets, 10),
         price: parseFloat(price),
         seatsAvailable,
-        userEkycRequired: true,
+        userEkycRequired,
         host: {
           connect: { id: host.id }, // Connecting the event to the host
         },
         venueInformation: {
-          connect: { id: checkVenue.id }, // Conncecting the event to the venue
+          connect: { id: chosenVenue.id }, // Connecting the event to the chosen venue
         },
       },
     });
-    // Event creation successfull
+    // Event creation successful
     console.log("Event created: ", createNewEvent);
     return res.status(201).json({
+      success: true,
       message: "New event created successfully",
       event: createNewEvent,
     });
   } catch (error) {
     console.error("Error during event creation: ", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 

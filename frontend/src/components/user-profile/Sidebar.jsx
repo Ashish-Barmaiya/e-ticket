@@ -16,11 +16,15 @@ import * as Separator from "@radix-ui/react-separator";
 import { useAppSelector, useAppDispatch } from "../../redux/hooks";
 import { setUser, setSignInOpen } from "../../redux/userSlice";
 
-export default function Sidebar() {
+export default function UserSidebar() {
   const pathname = usePathname();
-
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user);
+
+  // Define a signOut function (update with your actual signOut logic)
+  const signOut = async () => {
+    // Your signOut implementation here.
+  };
 
   const links = [
     {
@@ -56,8 +60,9 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 border-r p-4 mt-24 bg-gray-800 text-white/90 rounded-r-lg rounded-b-none">
-      <div className="space-y-4  pt-2 px-4">
+    // Use fixed positioning with full viewport height.
+    <div className="fixed top-24 left-0 w-64 h-screen border-r p-4 bg-gray-800 text-white/90 rounded-r-lg">
+      <div className="space-y-4 pt-2 px-4">
         <div className="mb-6">
           <h2 className="text-xl font-semibold px-3">User Profile</h2>
         </div>
@@ -67,7 +72,7 @@ export default function Sidebar() {
               key={link.href}
               asChild
               variant={pathname === link.href ? "secondary" : "ghost"}
-              className="w-full justify-start py-6 px-3 text-md font-normal "
+              className="w-full justify-start py-6 px-3 text-md font-normal"
             >
               <Link href={link.href}>
                 {link.icon}

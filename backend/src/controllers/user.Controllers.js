@@ -90,6 +90,7 @@ const initializeUserRegistrationAndSendEmailOtp = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      message: "OTP sent successfully via Email",
       email,
     });
   } catch (error) {
@@ -144,8 +145,9 @@ const verifyUserEmailAndCompleteRegistration = async (req, res) => {
       console.log("Error creating new user: ", error);
     }
     console.log("Succesfully created new user ", newUser);
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
+      message: "Successfully created new user",
       user: newUser,
     });
   } catch (error) {
@@ -200,9 +202,12 @@ const loginUser = asyncHandler(async (req, res, next) => {
       return res.status(401).json({ message: "Authentication failed" });
     }
 
+    // User object for token generation
+    const userWithRole = { ...user, role: "user" };
+
     // Generate tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(userWithRole);
+    const refreshToken = generateRefreshToken(userWithRole);
 
     // Store refresh token in database
     await prisma.user
