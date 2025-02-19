@@ -84,14 +84,6 @@ class TicketController {
           assignedSeatNumbers = UserEnteredSeatNumbers;
         }
 
-        // Get the current max ticket number for the event
-        const lastTicket = await prisma.ticket.findFirst({
-          where: { eventId: eventId },
-          orderBy: { ticketNumber: "desc" },
-        });
-
-        const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
-
         // Check eKyc conditions
         /* Condition 1 */
         if (event.userEkycRequired === true && user.eKyc === false) {
@@ -108,6 +100,14 @@ class TicketController {
           let createdTickets = [];
           for (let i = 0; i < totalTickets; i++) {
             const seatNumber = assignedSeatNumbers[i];
+
+            // Get the current max ticket number for the event
+            const lastTicket = await prisma.ticket.findFirst({
+              where: { eventId: eventId },
+              orderBy: { ticketNumber: "desc" },
+            });
+
+            const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
             const createdTicket = await prisma.ticket.create({
               data: {
                 ticketNumber: ticketNumber,
@@ -143,6 +143,15 @@ class TicketController {
           let createdTickets = [];
           for (let i = 0; i < totalTickets; i++) {
             const seatNumber = assignedSeatNumbers[i];
+
+            // Get the current max ticket number for the event
+            const lastTicket = await prisma.ticket.findFirst({
+              where: { eventId: eventId },
+              orderBy: { ticketNumber: "desc" },
+            });
+
+            const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
+
             const createdTicket = await prisma.ticket.create({
               data: {
                 ticketNumber: ticketNumber,
@@ -181,16 +190,51 @@ class TicketController {
     } catch (error) {
       console.error("Error occurred after transaction commit:", error);
 
-      // Assuming `result` holds the array of created tickets.
-      if (result && result.length > 0) {
+      // Cleanup: if tickets were created, update event and delete created tickets
+      if (result && Array.isArray(result) && result.length > 0) {
         try {
+          // Extract seatNumbers from created tickets
+          const seatNumbersToAddBack = result.map(
+            (ticket) => ticket.seatNumber,
+          );
+
+          // Fetch event's current data
+          const event = await prisma.event.findUnique({
+            where: { id: eventId },
+            select: { seatsAvailable: true, ticketsAvailable: true },
+          });
+
+          if (event) {
+            // Merge booked seatNumbers back into availableSeats
+            const newSeatsAvailable = Array.from(
+              new Set([...event.seatsAvailable, ...seatNumbersToAddBack]),
+            );
+
+            // Restore the ticketsAvailable count adding back the number of tickets created
+            const updatedTicketsAvailable =
+              event.ticketsAvailable + result.length;
+
+            // Update event record
+            await prisma.event.update({
+              where: { id: eventId },
+              data: {
+                seatsAvailable: newSeatsAvailable,
+                ticketsAvailable: updatedTicketsAvailable,
+              },
+            });
+          }
+
+          // Delete the created tickets
           await prisma.ticket.deleteMany({
             where: {
               id: { in: result.map((ticket) => ticket.id) },
             },
           });
-          console.log("Cleaned up orphaned tickets.");
-        } catch (cleanupError) {
+
+          console.log(
+            "Cleaned up orphaned tickets and updated seatsAvailable.",
+          );
+        } catch (error) {
           console.error("Error cleaning up orphaned tickets:", cleanupError);
         }
       }

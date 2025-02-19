@@ -6,7 +6,7 @@ import HomeCarousal from "./HomeCarousal";
 export default function Hero() {
   return (
     <div>
-      <div className=" bg-gradient-to-br from-gray-800 via-teal-500 to-purple-700">
+      <div className=" bg-black">
         <div className="container mx-auto px-8 py-56">
           <HomeCarousal />
 

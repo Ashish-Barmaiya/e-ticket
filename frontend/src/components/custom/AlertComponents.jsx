@@ -44,7 +44,7 @@ function TicketCancelledAlert({ ticketId }) {
             Ticket Cancelled Successfully.
           </AlertDialogTitle>
           <AlertDialogDescription className="text-md tracking-wide">
-            Ticket Id :<stong className="font-semibold "> {ticketId}</stong>
+            Ticket Id :<strong className="font-semibold "> {ticketId}</strong>
           </AlertDialogDescription>
           <AlertDialogDescription className="text-md tracking-wide">
             Your ticket has been cancelled successfully. Thank you for booking
