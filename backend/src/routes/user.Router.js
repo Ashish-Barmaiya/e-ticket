@@ -149,10 +149,16 @@ router.post(
 );
 
 // USER E-KYC GET ROUTE //
-router.get("/profile/user-ekyc", userLoginAuth, async (req, res) => {
+router.get("/profile/ekyc", userLoginAuth, async (req, res) => {
   const user = await prisma.user.findFirst({
     where: { refreshToken: req.cookies.refreshToken },
   });
+
+  if (!user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized. Please login." });
+  }
 
   if (user.eKyc === true) {
     // Decrypt and Mask userAadhaarNumber
@@ -165,19 +171,22 @@ router.get("/profile/user-ekyc", userLoginAuth, async (req, res) => {
       decyptedAadhaarPhoneNumber.substr(0, 2) +
       "******" +
       decyptedAadhaarPhoneNumber.slice(-2);
-    res.render("userPages/userEkycCompleted", {
-      user,
-      maskedAadhaarNumber,
-      maskedAadhaarPhoneNumber,
+
+    return res.status(200).json({
+      success: true,
+      message: "User e-kyc already completed",
+      userData: { user, maskedAadhaarNumber, maskedAadhaarPhoneNumber },
     });
   } else {
-    res.render("userPages/userEkyc");
+    return res
+      .status(200)
+      .json({ success: true, message: "User e-kyc not completed" });
   }
 });
 
 // USER E-KYC POST ROUTE //
 router.post(
-  "/profile/user-ekyc",
+  "/profile/ekyc",
   userLoginAuth,
   upload.single("aadhaarXmlFile"),
   (req, res, next) => {
@@ -188,28 +197,32 @@ router.post(
 );
 
 // USER VERIFY-PHONE-NUMBER GET ROUTE //
-router.get(
-  "/profile/user-ekyc/verify-phone-number",
-  userLoginAuth,
-  (req, res) => {
-    res.render("userPages/userVerifyAadhaarPhoneNumber");
-  },
-);
+router.get("/profile/ekyc/verify-phone-number", userLoginAuth, (req, res) => {
+  res.render("userPages/userVerifyAadhaarPhoneNumber");
+});
 
 // USER VERIFY-PHONE-NUMBER POST ROUTE //
 router.post(
-  "/profile/user-ekyc/verify-phone-number",
+  "/profile/ekyc/verify-phone-number",
   userLoginAuth,
   verifyUserMobileAndSendOtp,
 );
 
 // USER VERIFY-OTP GET ROUTE //
-router.get("/profile/user-ekyc/verify-otp", userLoginAuth, (req, res) => {
-  res.render("userPages/userVerifyOtp");
-});
+router.get(
+  "/profile/ekyc/verify-phone-number/verify-otp",
+  userLoginAuth,
+  (req, res) => {
+    res.render("userPages/userVerifyOtp");
+  },
+);
 
 // USER VERIFY-OTP POST ROUTE //
-router.post("/profile/user-ekyc/verify-otp", userLoginAuth, userVerifyOtp);
+router.post(
+  "/profile/ekyc/verify-phone-number/verify-otp",
+  userLoginAuth,
+  userVerifyOtp,
+);
 
 // USER VERIFY PHONE NUMBER GET ROUTE //
 router.get(

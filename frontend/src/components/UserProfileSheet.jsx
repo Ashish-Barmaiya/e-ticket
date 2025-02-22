@@ -81,7 +81,7 @@ export default function UserProfileSheet() {
       <SheetTrigger asChild>
         <Button
           variant="outline"
-          className="text-lg underline tracking-wider border-gray-600 text-teal-700  hover:bg-white hover:border-teal-500 hover:border transition duration-300"
+          className="text-lg  tracking-wider bg-opacity-0 border-gray-600 text-teal-400  hover:bg-white hover:border-teal-500 hover:border transition duration-300"
         >
           Profile
         </Button>
@@ -139,7 +139,7 @@ export default function UserProfileSheet() {
                         <div className="flex items-center">
                           <SheetClose asChild>
                             <Link
-                              href="/user/profile/user-ekyc"
+                              href="/user/profile/ekyc"
                               className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
                             >
                               <img

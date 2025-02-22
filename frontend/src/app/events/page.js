@@ -1,14 +1,15 @@
+// EVENTS PAGE //
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
-import { Button } from "@/components/ui/button";
+import EventsPageComponent from "@/components/event/EventsPage";
+import EventsPageBodyComponent from "@/components/event/EventsPageBodyComponent";
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const router = useRouter();
@@ -46,13 +47,48 @@ const EventsPage = () => {
         setError(
           "Failed to fetch events. Please check your connection and try again."
         );
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchEvents();
   }, [router]);
 
-  console.log(events);
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <Head>
+          <title>Loading Events...</title>
+        </Head>
+        {/* SVG Spinner */}
+        <svg
+          className="animate-spin h-10 w-10 text-teal-600 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          ></path>
+        </svg>
+
+        <h1 className="text-xl tracking-wide">
+          Loading <span className="text-teal-600">Events...</span>
+        </h1>
+      </div>
+    );
+  }
 
   // If events[] is empty
   if (events.length === 0) {
@@ -74,34 +110,8 @@ const EventsPage = () => {
         <Head>
           <title>Events</title>
         </Head>
-        <div className="pb-4 px-10 font-semibold text-5xl text-black/85 mb-4">
-          <h1>Events</h1>
-        </div>
-
-        <ul className="px-10 flex gap-20">
-          {events.map((events) => (
-            <li key={events.id}>
-              <Link href={`/events/${events.id}/details`}>
-                <button onClick={() => setSelectedEvent(events)}>
-                  <div className="bg-red-300 rounded-md hover:shadow-xl hover:shadow-black/25">
-                    <div className="p-4">
-                      <h1>Image</h1>
-                    </div>
-                    <div className="grid p-4 tracking-wider">
-                      <h1 className="text-xl">{events.title}</h1>
-                      <p>{events.description}</p>
-                      <p className="text-md">{events.artist}</p>
-                      <p>{new Date(events.date).toLocaleDateString()}</p>
-                      <p>{events.venueInformation.address}</p>
-                      <p>{events.venueInformation.city}</p>
-                      <p>Price: ₹{events.price}</p>
-                    </div>
-                  </div>
-                </button>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <EventsPageComponent />
+        <EventsPageBodyComponent events={events} />
       </div>
     </div>
   );

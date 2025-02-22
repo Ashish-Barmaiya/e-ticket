@@ -9,6 +9,30 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+function ErrorAlert({ error }) {
+  const router = useRouter();
+
+  return (
+    <AlertDialog open>
+      <AlertDialogContent className="border-4 border-teal-600 rounded-lg">
+        <AlertDialogHeader className="px-3">
+          <AlertDialogTitle className="text-xl text-red-600">
+            Error
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-md">
+            {error.message}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => router.push("/")}>
+            Close
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function SignInAlert() {
   const router = useRouter();
 
@@ -82,4 +106,4 @@ function EventCreatedAlert() {
   );
 }
 
-export { SignInAlert, TicketCancelledAlert, EventCreatedAlert };
+export { ErrorAlert, SignInAlert, TicketCancelledAlert, EventCreatedAlert };

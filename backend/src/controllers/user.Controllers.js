@@ -446,25 +446,29 @@ const extractAadhaarXml = async (req, res) => {
       await fs.unlink(filePath);
       return res
         .status(401)
-        .json({ message: "Unauthorized: No refresh token" });
+        .json({ success: false, message: "Unauthorized: No refresh token" });
     }
 
     const user = await prisma.user.findFirst({ where: { refreshToken } });
     if (!user) {
-      console.log("USer not found during e-kyc");
-      return res.status(404).json({ message: "User not found" });
+      console.log("User not found during e-kyc");
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
     }
 
     // Check if user eKyc is already been done
     if (user.eKyc === true) {
       return res
-        .status(400)
-        .json({ message: "Your e-Kyc has already been done." });
+        .status(403)
+        .json({ success: false, message: "Your e-Kyc has already been done." });
     }
 
     // Ensure file exits
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded!" });
     }
 
     const filePath = req.file.path;
@@ -475,7 +479,9 @@ const extractAadhaarXml = async (req, res) => {
       xmlData = await parseXmlFile(filePath);
     } catch (error) {
       await fs.unlink(filePath); // Clean up the uploaded file
-      return res.status(400).json({ message: "Invalid XML file format" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid XML file format" });
     }
 
     // Process the extracted data
@@ -500,17 +506,22 @@ const extractAadhaarXml = async (req, res) => {
       });
     } catch (error) {
       console.error("Error storing data in redis: ", error);
-      res.status(500).send("Failed to store data in redis");
+      res.status(500).json({ success: false, message: "Redis error" });
     }
-
-    // Success Response
-    res.redirect("/user/profile/user-ekyc/verify-phone-number");
-
     // Delete the file after processing
     await fs.unlink(filePath);
+
+    // Success Response
+    return res
+      .status(200)
+      .json({ success: true, message: "Xml file parsed successfully" });
   } catch (error) {
     console.error("Error parsing XML File", error);
-    res.status(500).json({ message: error.message });
+    // Delete file
+    if (req.file || filePath) {
+      await fs.unlink(filePath);
+    }
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -533,6 +544,7 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
       existingEkycWithPhoneNumber.eKyc === true
     ) {
       return res.status(400).json({
+        success: false,
         message: "This mobile number has already been used for e-kyc purpose",
       });
     }
@@ -543,7 +555,9 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
     }
 
     const key = `xml:${user.id}`;
@@ -552,7 +566,10 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
     const jsonDataString = await redisClient.get(key);
 
     if (!jsonDataString) {
-      return res.status(404).send("No data found for the given userId");
+      return res.status(500).json({
+        success: false,
+        message: "Redis error",
+      });
     }
 
     const jsonData = JSON.parse(jsonDataString);
@@ -586,9 +603,10 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
 
     // Compare hashes
     if (originalMobileHash !== newMobileHash) {
-      return res
-        .status(500)
-        .json({ message: "This mobile number is not linked to any aadhaar" });
+      return res.status(400).json({
+        success: false,
+        message: "This mobile number is not linked to any aadhaar",
+      });
     }
 
     const phoneNumber = filteredAadhaarPhoneNumber;
@@ -608,7 +626,9 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
 
     if (!sentOtp) {
       console.error("Error sending OTP:", error);
-      return res.status(500).json({ message: "Error sending OTP" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Error sending OTP" });
     }
 
     // Store otpData in session for verification later
@@ -619,10 +639,13 @@ const verifyUserMobileAndSendOtp = async (req, res) => {
 
     console.log("OTP SENT SUCCESSFULLY");
 
-    return res.redirect("/user/profile/user-ekyc/verify-otp");
+    // return res.redirect("/user/profile/user-ekyc/verify-otp");
+    return res
+      .status(200)
+      .json({ success: false, message: "Otp sent successfully" });
   } catch (error) {
     console.error("Error in verifyUserMobile:", error); // Log the error for debugging
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -633,19 +656,23 @@ const userVerifyOtp = async (req, res) => {
     const storedOtpData = req.session.otpData;
 
     if (!storedOtpData) {
-      return res.status(400).json({ message: "OTP not found in session" });
+      return res
+        .status(404)
+        .json({ success: false, message: "OTP not found in session" });
     }
 
     // Check if OTP has expired
     if (Date.now() > storedOtpData.expiresAt) {
       console.log("OTP has expired");
-      return res.status(400).json({ message: "OTP has expired" });
+      return res
+        .status(400)
+        .json({ success: false, message: "OTP has expired" });
     }
 
     // Verify OTP
     if (Number(otp) !== storedOtpData.otp) {
       console.log("Invalid OTP");
-      return res.status(401).json({ message: "Inavalid OTP" });
+      return res.status(400).json({ success: false, message: "Inavalid OTP" });
     }
 
     // Get Key to retrieve redis data
@@ -658,7 +685,9 @@ const userVerifyOtp = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
     }
 
     const key = `xml:${user.id}`;
@@ -667,9 +696,7 @@ const userVerifyOtp = async (req, res) => {
     const redisData = JSON.parse(await redisClient.get(key));
 
     if (!redisData) {
-      return res
-        .status(500)
-        .json({ message: "Error getting redis data for the user" });
+      return res.status(500).json({ success: false, message: "Redis error" });
     }
 
     const userDataFromRedis = {
@@ -698,7 +725,7 @@ const userVerifyOtp = async (req, res) => {
     console.log("User Unique Identity: ", uniqueUserIdentity);
 
     // Encrypt last four digits of aadhaar
-    const encryptedAadhaarNumber = await encryptData(
+    const encryptedAadhaarNumber = encryptData(
       userDataFromRedis.lastFourDigitsOfUserAadhaarNumber,
     );
 
@@ -706,7 +733,7 @@ const userVerifyOtp = async (req, res) => {
       console.log("Error encrypting Aadhaar Number");
       return res
         .status(500)
-        .josn({ message: "Error encryptin Aadhaar Number" });
+        .josn({ success: false, message: "Error encrypting Aadhaar Number" });
     }
 
     // Encrypt aadhaar phone number
@@ -714,9 +741,10 @@ const userVerifyOtp = async (req, res) => {
 
     if (!encryptedAadhaarPhoneNumber) {
       console.log("Error encrypting Aadhaar Phone Number");
-      return res
-        .status(500)
-        .josn({ message: "Error encrypting Aadhaar Phone Number" });
+      return res.status(500).josn({
+        success: false,
+        message: "Error encrypting Aadhaar Phone Number",
+      });
     }
 
     // If user aadhaarPhoneNumber and phoneNumber used for sign-up are same, update user.phoneVerification
@@ -725,7 +753,7 @@ const userVerifyOtp = async (req, res) => {
 
     await prisma.$transaction(async (prisma) => {
       // update name, mobile number, dob, gender, UUI and eKyc status in user model
-      await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           uniqueUserIdentity,
@@ -740,13 +768,21 @@ const userVerifyOtp = async (req, res) => {
 
       console.log("User eKyc successful");
 
-      return res.render("userPages/userEkycSuccess");
+      // return res.render("userPages/userEkycSuccess");
+      return res.status(201).json({
+        success: true,
+        message: "User Aadhaar E-kyc completed successfully",
+        updatedUser,
+      });
     });
   } catch (error) {
     console.error("Internal server error while verifying otp: ", error);
     return res
       .status(500)
-      .json({ message: "Internal server error while verifying otp: " });
+      .json({
+        success: false,
+        message: "Internal server error while verifying otp: ",
+      });
   }
 };
 

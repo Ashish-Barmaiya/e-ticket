@@ -86,11 +86,34 @@ export default function MyTickets() {
 
   if (loading) {
     return (
-      <div>
+      <div className="flex flex-col items-center justify-center h-screen">
         <Head>
           <title>Loading My Tickets...</title>
         </Head>
-        <h1>Loading Your Tickets...</h1>
+        {/* SVG Spinner */}
+        <svg
+          className="animate-spin h-10 w-10 text-teal-600 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          ></path>
+        </svg>
+        <h1 className="text-xl tracking-wide">
+          Loading Your <span className="text-teal-600">Tickets...</span>
+        </h1>
       </div>
     );
   }
@@ -113,14 +136,45 @@ export default function MyTickets() {
 
   if (!tickets || tickets.length === 0) {
     return (
-      <div className="mt-24 pt-4 px-10">
+      <div className="mt-12 pt-0 px-6">
         <Head>
           <title>No Tickets Found</title>
         </Head>
-        <div className="pb-4 px-10 font-semibold text-5xl text-black/85 mb-4">
-          <h1>Your Tickets</h1>
+        {/* <div className="pb-4 font text-5xl tracking-wider text-black/85 mb-4">
+          <h1>
+            Your{" "}
+            <span className="text-6xl text-teal-600 tracking-tight">
+              Tickets
+            </span>{" "}
+          </h1>
+        </div> */}
+        <div className="flex flex-col items-center justify-center h-screen text-center transform -translate-y-10">
+          <h2 className="flex items-baseline text-3xl tracking-wide">
+            No&nbsp;<span className="text-teal-600 text-4xl">Tickets</span>
+            &nbsp;Found
+            {/* <div
+              className="w-6 h-6 ml-2 bg-teal-700"
+              style={{
+                WebkitMask:
+                  "url('/user/sad_face.png') center / contain no-repeat",
+                mask: "url('/user/sad_face.png') center / contain no-repeat",
+              }}
+            ></div> */}
+          </h2>
+
+          <img
+            src="/user/ticket_not_found.png"
+            alt="no_tickets"
+            className="w-40 h-40"
+          />
+          <p>You have no active tickets.</p>
+          <p className="mb-2">Let's get you started!</p>
+          <Link href="/events">
+            <button className="px-4 py-2 bg-teal-500 text-white tracking-widest rounded-md">
+              Explore Events
+            </button>
+          </Link>
         </div>
-        <p>No active tickets found.</p>
       </div>
     );
   }
@@ -183,7 +237,7 @@ export default function MyTickets() {
           <h1>Your Tickets</h1>
         </div>
 
-        <ul className="px-10 flex gap-20">
+        <ul className="px-10 grid grid-flow-col grid-rows-3 gap-20">
           {tickets.map((ticket) => (
             <li key={ticket.id}>
               <div>

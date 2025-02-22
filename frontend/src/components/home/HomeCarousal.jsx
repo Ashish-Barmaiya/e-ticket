@@ -93,7 +93,7 @@ const HomeCarousal = () => {
           {slides.map((slide, index) => (
             <SwiperSlide key={index}>
               <div className="bg-opacity-0 text-white/95 rounded-2xl flex flex-col justify-center">
-                <h2 className="text-8xl py-2 tracking-wider bg-gradient-to-r from-teal-300 to-teal-500 bg-clip-text text-transparent">
+                <h2 className="text-8xl py-2 mt-8 tracking-wider bg-gradient-to-r from-teal-300 to-teal-500 bg-clip-text text-transparent">
                   {slide.title}
                 </h2>
                 <p className="mt-4 text-3xl text-white/85 tracking-wider px-2">
