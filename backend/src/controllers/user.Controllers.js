@@ -366,7 +366,9 @@ const myTickets = async (req, res) => {
     });
 
     if (!allTickets) {
-      return res.status(404).json({ message: "No ticket found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "No ticket found" });
     }
     return res.status(200).json({
       success: true,
@@ -375,7 +377,9 @@ const myTickets = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user tickets: ", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -443,7 +447,6 @@ const extractAadhaarXml = async (req, res) => {
     // Identify the user
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
-      await fs.unlink(filePath);
       return res
         .status(401)
         .json({ success: false, message: "Unauthorized: No refresh token" });
@@ -506,8 +509,10 @@ const extractAadhaarXml = async (req, res) => {
       });
     } catch (error) {
       console.error("Error storing data in redis: ", error);
-      res.status(500).json({ success: false, message: "Redis error" });
+      await fs.unlink(filePath);
+      return res.status(500).json({ success: false, message: "Redis error" });
     }
+
     // Delete the file after processing
     await fs.unlink(filePath);
 
@@ -769,7 +774,7 @@ const userVerifyOtp = async (req, res) => {
       console.log("User eKyc successful");
 
       // return res.render("userPages/userEkycSuccess");
-      return res.status(201).json({
+      return res.status(204).json({
         success: true,
         message: "User Aadhaar E-kyc completed successfully",
         updatedUser,
@@ -777,12 +782,10 @@ const userVerifyOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("Internal server error while verifying otp: ", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error while verifying otp: ",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while verifying otp: ",
+    });
   }
 };
 

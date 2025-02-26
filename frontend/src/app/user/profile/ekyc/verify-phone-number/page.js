@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { ErrorAlert, SignInAlert } from "@/components/custom/AlertComponents";
 
@@ -11,6 +12,8 @@ const MobileNumberInput = () => {
   const [message, setMessage] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+
+  const router = useRouter();
 
   const handleMobileChange = (e) => {
     const value = e.target.value;
@@ -92,7 +95,7 @@ const MobileNumberInput = () => {
       const response = await fetch(
         "/api/user/profile/ekyc/verify-phone-number/verify-otp",
         {
-          method: "POST",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ otp: otp }),
         }
@@ -116,6 +119,7 @@ const MobileNumberInput = () => {
       await response.json();
       setMessage("User Aadhaar E-kyc completed successfully");
       setIsVerified(true);
+      router.push("/user/profile/ekyc");
       toast.success("Your Aadhaar E-kyc completed successfully!", {
         position: "top-center",
         autoClose: 3000,

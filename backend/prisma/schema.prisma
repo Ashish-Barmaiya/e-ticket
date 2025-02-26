@@ -201,6 +201,7 @@ model Ticket {
   status             String               @default("Active") // New Field
   canceledAt         DateTime? // New Field
   cancellation       TicketCancellations? // New Relation
+  qrCode             String?
   user               User                 @relation(fields: [userId], references: [id])
   event              Event                @relation(fields: [eventId], references: [id])
 

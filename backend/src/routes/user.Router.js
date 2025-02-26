@@ -81,6 +81,60 @@ router.get("/profile", userLoginAuth, async (req, res) => {
   });
 });
 
+// USER PERSONAL INFORMATION GET ROUTE //
+router.get(
+  "/profile/account/personal-information",
+  userLoginAuth,
+  async (req, res) => {
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+      include: { addresses: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Decrypt and Mask userPhonNumber
+    const userPhoneNumber = decryptData(user.phone);
+    const maskedUserPhoneNumber =
+      userPhoneNumber.substr(0, 2) + "******" + userPhoneNumber.slice(-2);
+
+    if (user.eKyc === true) {
+      // Decrypt and Mask userAadhaarNumber
+      const decyptedAadhaarNumber = decryptData(user.aadhaarNumber);
+      const maskedAadhaarNumber = "XXXX-XXXX-" + decyptedAadhaarNumber;
+
+      // Decrypt and Mask userAadhaarPhoneNumber
+      const decryptedAadhaarPhoneNumber = decryptData(user.aadhaarPhoneNumber);
+      const maskedAadhaarPhoneNumber =
+        decryptedAadhaarPhoneNumber.substr(0, 2) +
+        "******" +
+        decryptedAadhaarPhoneNumber.slice(-2);
+
+      return res.status(200).json({
+        success: true,
+        message: "User personal information fetched successfully",
+        user: {
+          user,
+          maskedUserPhoneNumber,
+          maskedAadhaarNumber,
+          maskedAadhaarPhoneNumber,
+        },
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: "User personal information fetched successfully",
+        user: { user, maskedUserPhoneNumber },
+      });
+    }
+  },
+);
+
 // USER EDIT PROFILE GET ROUTE //
 router.get("/profile/edit-profile", userLoginAuth, async (req, res) => {
   // Get user
@@ -218,7 +272,7 @@ router.get(
 );
 
 // USER VERIFY-OTP POST ROUTE //
-router.post(
+router.patch(
   "/profile/ekyc/verify-phone-number/verify-otp",
   userLoginAuth,
   userVerifyOtp,

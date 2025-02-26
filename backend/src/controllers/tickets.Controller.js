@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import QRCode from "qrcode";
+import { sendTicketPdf } from "../utils/sendTicket.js";
 
 const prisma = new PrismaClient();
 
@@ -30,38 +32,46 @@ class TicketController {
     const UserEnteredSeatNumbers = req.body.seatNumber;
     const userId = user.id;
     const eventId = parseInt(req.params.eventId, 10);
+    const sendTicketToEmail = req.body.sendTicketToEmail;
+
+    // Fetching event details to get the price and ticketsAvailable
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        title: true,
+        date: true,
+        startTime: true,
+        price: true,
+        ticketsAvailable: true,
+        seatsAvailable: true,
+        venueInformation: true,
+      },
+    });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    if (event.ticketsAvailable === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Tickets sold out",
+      });
+    }
+
+    // Check if enough tickets are available
+    if (event.ticketsAvailable < totalTickets) {
+      return res.status(400).json({
+        success: false,
+        message: "Not enough tickets available",
+      });
+    }
 
     try {
       result = await prisma.$transaction(async (prisma) => {
-        // Fetching event details to get the price and ticketsAvailable
-        const event = await prisma.event.findUnique({
-          where: { id: eventId },
-          select: {
-            price: true,
-            ticketsAvailable: true,
-            seatsAvailable: true,
-          },
-        });
-
-        if (!event) {
-          throw new Error("Event not found");
-        }
-
-        if (event.ticketsAvailable === 0) {
-          return res.status(404).json({
-            success: false,
-            message: "Tickets sold out",
-          });
-        }
-
-        // Check if enough tickets are available
-        if (event.ticketsAvailable < totalTickets) {
-          return res.status(400).json({
-            success: false,
-            message: "Not enough tickets available",
-          });
-        }
-
         let assignedSeatNumbers = [];
 
         if (!UserEnteredSeatNumbers || UserEnteredSeatNumbers.length === 0) {
@@ -108,15 +118,27 @@ class TicketController {
             });
 
             const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
+
+            // Prepare ticketData
+            const ticketData = {
+              ticketNumber: ticketNumber,
+              userId: userId,
+              eventId: eventId,
+              price: event.price,
+              seatNumber: seatNumber,
+              userEkycRequired: true,
+              uniqueUserIdentity: user.uniqueUserIdentity,
+            };
+
+            // Generate QR Code for ticket
+            const qrCodeData = await QRCode.toDataURL(
+              JSON.stringify(ticketData),
+            );
+
             const createdTicket = await prisma.ticket.create({
               data: {
-                ticketNumber: ticketNumber,
-                userId: userId,
-                eventId: eventId,
-                price: event.price,
-                seatNumber: seatNumber,
-                userEkycRequired: true,
-                uniqueUserIdentity: user.uniqueUserIdentity,
+                ...ticketData,
+                qrCode: qrCodeData,
               },
             });
             createdTickets.push(createdTicket);
@@ -152,13 +174,24 @@ class TicketController {
 
             const ticketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
 
+            //Prepare ticket data
+            const ticketData = {
+              ticketNumber: ticketNumber,
+              userId: userId,
+              eventId: eventId,
+              price: event.price,
+              seatNumber: seatNumber,
+            };
+
+            // Generate QR Code for ticket
+            const qrCodeData = await QRCode.toDataURL(
+              JSON.stringify(ticketData),
+            );
+
             const createdTicket = await prisma.ticket.create({
               data: {
-                ticketNumber: ticketNumber,
-                userId: userId,
-                eventId: eventId,
-                price: event.price,
-                seatNumber: seatNumber,
+                ...ticketData,
+                qrCode: qrCodeData,
               },
             });
             createdTickets.push(createdTicket);
@@ -181,11 +214,18 @@ class TicketController {
         }
       });
 
+      let ticketSentViaEmail;
+      if (result && sendTicketToEmail) {
+        // Send ticket via email
+        ticketSentViaEmail = await sendTicketPdf(result, user, event);
+      }
+
       console.log("Tickets created successfully:", result);
       return res.status(201).json({
         success: true,
         message: "Tickets purchased successfully",
         ticket: result,
+        ticketSentViaEmail,
       });
     } catch (error) {
       console.error("Error occurred after transaction commit:", error);

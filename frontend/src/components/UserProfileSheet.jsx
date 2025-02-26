@@ -173,7 +173,7 @@ export default function UserProfileSheet() {
                         <div className="flex items-center">
                           <SheetClose asChild>
                             <Link
-                              href="/user/profile/user-change-password"
+                              href="/user/profile/account"
                               className="flex pt-1 px-1 text-gray-700 font-medium text-base hover:text-teal-600 hover:underline"
                             >
                               <img
@@ -181,7 +181,7 @@ export default function UserProfileSheet() {
                                 alt="my_tickets"
                                 className="w-6 h- mr-2 object-contain"
                               />
-                              <p className="px-1">Change Password</p>
+                              <p className="px-1">Account</p>
                             </Link>
                           </SheetClose>
                         </div>

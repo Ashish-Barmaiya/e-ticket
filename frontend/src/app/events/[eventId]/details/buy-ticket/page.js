@@ -9,8 +9,9 @@ import { SignInAlert } from "@/components/custom/AlertComponents";
 export default function BuyTicketPage() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
-  const [totalSeats, setTotalSeats] = useState(""); // Initialize as empty string
-  const [seatNumber, setSeatNumber] = useState([]); // if needed later
+  const [totalSeats, setTotalSeats] = useState("");
+  const [seatNumber, setSeatNumber] = useState([]);
+  const [sendTicketToEmail, setSendTicketToEmail] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -93,6 +94,7 @@ export default function BuyTicketPage() {
           body: JSON.stringify({
             totalSeats: totalSeats,
             seatNumber: seatNumber || null,
+            sendTicketToEmail: sendTicketToEmail,
           }),
         }
       );
@@ -110,6 +112,7 @@ export default function BuyTicketPage() {
       // Reset form values if needed
       setTotalSeats("");
       setSeatNumber([]);
+      setSendTicketToEmail(false);
     }
   };
 
@@ -130,6 +133,18 @@ export default function BuyTicketPage() {
           placeholder="Enter total seats"
           className="border border-gray-300 p-2 rounded w-fit"
         />
+      </div>
+      {/* Checkbox for sending ticket to user's email */}
+      <div className="px-10 mb-4">
+        <label className="inline-flex items-center">
+          <input
+            type="checkbox"
+            checked={sendTicketToEmail}
+            onChange={(e) => setSendTicketToEmail(e.target.checked)}
+            className="form-checkbox"
+          />
+          <span className="ml-2 text-lg">Send ticket to my email</span>
+        </label>
       </div>
       <form onSubmit={handleBookTicketSubmit} className="px-10">
         <Button type="submit" className="bg-teal-600 tracking-wider">

@@ -90,8 +90,8 @@ export default function UserSidebar() {
       icon: <Ticket className="mr-2 h-4 w-4" />,
     },
     {
-      name: "Change Password",
-      href: "/user/profile/user-change-password",
+      name: "Account",
+      href: "/user/profile/account/",
       icon: <Lock className="mr-2 h-4 w-4" />,
     },
     {
@@ -109,9 +109,11 @@ export default function UserSidebar() {
   return (
     // Use fixed positioning with full viewport height.
     <div className="fixed top-16 left-0 w-64 h-screen border-r-2 border-teal-600 p-4 bg-black/85 text-white/90 ">
-      <div className="space-y-4 pt-2 px-4">
+      <div className="space-y-4 pt-2 px-6">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold px-3">User Profile</h2>
+          <h2 className="text-xl px-0">
+            Hello, {user?.user?.fullName.split(" ")[0] || "User Profile"}
+          </h2>
         </div>
         <div>
           {links.map((link) => (
