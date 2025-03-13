@@ -4,13 +4,20 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { SignInAlert } from "@/components/custom/AlertComponents";
+import {
+  SignInAlert,
+  ErrorAlert,
+  TicketBookedAlert,
+} from "@/components/custom/AlertComponents";
+import withAuth from "@/hooks/withAuth";
 
-export default function BuyTicketPage() {
+function BuyTicketPage() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
   const [totalSeats, setTotalSeats] = useState("");
   const [seatNumber, setSeatNumber] = useState([]);
+  const [tickedBooked, setTicketBooked] = useState(false);
+  const [isTicketSentViaEmail, setIsTicketSentViaEmail] = useState(false);
   const [sendTicketToEmail, setSendTicketToEmail] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,7 +81,12 @@ export default function BuyTicketPage() {
         Loading Event...
       </div>
     );
-  if (error) return <div>{error}</div>;
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-screen text-2xl">
+        {error}
+      </div>
+    );
   if (!event) return <div>No event found.</div>;
 
   // POST request handler to book ticket
@@ -99,9 +111,19 @@ export default function BuyTicketPage() {
         }
       );
 
+      const data = await response.json();
+
       if (response.ok) {
         console.log("Ticket purchased successfully");
-        // Optionally, redirect or update UI here
+        setTicketBooked(true);
+
+        if (data.ticketSentViaEmail) {
+          setIsTicketSentViaEmail(true);
+          console.log("Ticket Sent Via Email successfully");
+        } else {
+          setIsTicketSentViaEmail(false);
+          console.log("Failed to sent via email");
+        }
       } else {
         console.log("Error purchasing ticket");
         setError("Error purchasing ticket");
@@ -118,6 +140,10 @@ export default function BuyTicketPage() {
 
   return (
     <div className="mt-24 pt-4 px-10">
+      {tickedBooked && (
+        <TicketBookedAlert isTicketSentViaEmail={isTicketSentViaEmail} />
+      )}
+
       <div className="pb-4 px-10 font-semibold text-5xl text-black/85 mb-4">
         <h1 className="tracking-wider">{event.title}</h1>
       </div>
@@ -154,3 +180,5 @@ export default function BuyTicketPage() {
     </div>
   );
 }
+
+export default withAuth(BuyTicketPage);

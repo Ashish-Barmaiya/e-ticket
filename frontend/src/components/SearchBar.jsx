@@ -14,15 +14,18 @@ const SearchBar = ({ placeholder = "Search events...", onSearch }) => {
   };
 
   return (
-    <div className="relative w-full max-w-md">
-      <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
+    <div className="relative flex w-full max-w-md">
+      {/* <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-500 rounded-r-none" /> */}
       <Input
         type="text"
         placeholder={placeholder}
         value={query}
         onChange={handleChange}
-        className="pl-10 text-white/90 font-light tracking-widest"
+        className="text-white/90 font-light tracking-widest rounded-r-none"
       />
+      <button className="text-white/70 px-2 border border-l-0 border-white/80 rounded-r-md hover:bg-white/10">
+        <Search size={20} />
+      </button>
     </div>
   );
 };

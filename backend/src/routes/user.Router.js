@@ -1,6 +1,6 @@
 import express from "express";
 import { userLoginAuth } from "../middlewares/auth.middleware.js";
-import { upload } from "../middlewares/multer.Middleware.js";
+import { upload, uploadImg } from "../middlewares/multer.Middleware.js";
 import {
   initializeUserRegistrationAndSendEmailOtp,
   verifyUserEmailAndCompleteRegistration,
@@ -13,6 +13,9 @@ import {
   userVerifyOtp,
   sendOtpToUserPhoneNumber,
   verifyUserPhoneNumberOtp,
+  uploadUserProfilePicture,
+  GetTicketForListingForResale,
+  listicketForResell,
 } from "../controllers/user.Controllers.js";
 import {
   validate,
@@ -160,6 +163,14 @@ router.post(
   userLoginAuth,
   validate(userUpdateValidator),
   updateUserInfo,
+);
+
+// USER EDIT PROFILE NEW ROUTE //
+router.post(
+  "/profile/account/personal-information/edit-profile",
+  userLoginAuth,
+  uploadImg.single("profilePic"),
+  uploadUserProfilePicture,
 );
 
 // USER MY-TICKETS GET ROUTE //
@@ -320,6 +331,20 @@ router.post(
   "/profile/edit-profile/enter-otp-to-verify-phone-number",
   userLoginAuth,
   verifyUserPhoneNumberOtp,
+);
+
+// USER LIST TICKET FOR RESELL GET ROUTE //
+router.get(
+  "/profile/my-tickets/list-ticket-for-resell/:ticketId",
+  userLoginAuth,
+  GetTicketForListingForResale,
+);
+
+// USER LIST TICKET FOR RESELL POST ROUTE //
+router.post(
+  "/profile/my-tickets/list-ticket-for-resell/:ticketId",
+  userLoginAuth,
+  listicketForResell,
 );
 
 // USER LOG OUT GET ROUTE //

@@ -79,6 +79,11 @@ const SignInForm = ({ onClose }) => {
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          style: {
+            background: "#121212", // Custom background color
+            color: "#fff", // Custom text color
+            fontSize: "16px",
+          },
         });
         onClose();
       } else {
@@ -92,6 +97,11 @@ const SignInForm = ({ onClose }) => {
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
+          style: {
+            background: "#121212", // Custom background color
+            color: "#fff", // Custom text color
+            fontSize: "16px",
+          },
         });
       }
     } catch (error) {

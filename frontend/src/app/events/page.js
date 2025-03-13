@@ -93,7 +93,7 @@ const EventsPage = () => {
   // If events[] is empty
   if (events.length === 0) {
     return (
-      <div className="mt-24 pt-4 px-10">
+      <div className="mt-12 pt-4 px-10">
         <Head>
           <title>No Events Found</title>
         </Head>
@@ -105,7 +105,7 @@ const EventsPage = () => {
   }
 
   return (
-    <div className="mt-24 pt-4 px-10">
+    <div className="mt-20  px-10">
       <div className="">
         <Head>
           <title>Events</title>

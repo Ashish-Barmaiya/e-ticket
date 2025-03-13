@@ -20,7 +20,6 @@ const TicketCard = ({ title, subtitle, date, location, children }) => {
         {children}
         <p className="text-sm text-light text-red-400">Click to Open</p>
       </div>
-      <div></div>
     </div>
   );
 };

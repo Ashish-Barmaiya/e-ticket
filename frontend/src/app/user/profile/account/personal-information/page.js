@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import withAuth from "@/hooks/withAuth";
 import { ChevronRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function UserPersonalInfoPage() {
   const [error, setError] = useState(null);
@@ -83,9 +84,16 @@ function UserPersonalInfoPage() {
   return (
     <div>
       <div className="mx-auto mt-12 px-10">
-        <h1 className="text-3xl tracking-tighter">
-          {userData.user.fullName || "Guest"}{" "}
-        </h1>
+        <div className="flex gap-5 align-baseline">
+          <h1 className="text-3xl tracking-tighter">
+            {userData.user.fullName || "Guest"}{" "}
+          </h1>
+          <Avatar>
+            <AvatarImage src={userData.user.profilePicture} />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </div>
+
         <Link
           href="/user/profile/account/personal-information/edit-profile"
           className="w-fit text-sm tracking-wider flex items-center hover:text-teal-500"
@@ -95,6 +103,7 @@ function UserPersonalInfoPage() {
             <ChevronRight size={20} strokeWidth={1} />
           </span>
         </Link>
+
         <table className="table-auto text-md mt-4 border-collapse">
           <tbody>
             <tr className="border-b border-teal-300/60">

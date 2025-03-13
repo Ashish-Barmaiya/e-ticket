@@ -152,63 +152,110 @@ model HostTeamManagement {
 
 // USER MODEL
 model User {
-  id                  String                @id @default(uuid())
-  email               String                @unique
-  emailVerification   Boolean               @default(false)
-  password            String
-  fullName            String
-  phone               String                @unique
-  phoneVerification   Boolean               @default(false)
-  dateOfBirth         String?
-  eKyc                Boolean               @default(false)
-  aadhaarNumber       String?               @unique
-  aadhaarPhoneNumber  String?               @unique
-  uniqueUserIdentity  String?               @unique
-  profilePicture      String?
-  gender              String?
-  refreshToken        String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  emailVerification  Boolean  @default(false)
+  password           String
+  fullName           String
+  phone              String   @unique
+  phoneVerification  Boolean  @default(false)
+  dateOfBirth        String?
+  eKyc               Boolean  @default(false)
+  aadhaarNumber      String?  @unique
+  aadhaarPhoneNumber String?  @unique
+  uniqueUserIdentity String?  @unique
+  profilePicture     String?
+  gender             String?
+  refreshToken       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   addresses           UserAddress[]
   tickets             Ticket[]
   TicketCancellations TicketCancellations[]
+  ResaleListing       ResaleListing[]
+
+  // Relation for tickets bought via resale
+  resalePurchases ResaleTransaction[] @relation(name: "buyerRelation")
+
+  // Relation for tickets sold via resale
+  resaleSales       ResaleTransaction[] @relation(name: "sellerRelation")
+  ResaleTransaction ResaleTransaction[]
 }
 
 // USER ADDRESS MODEL
 model UserAddress {
-  id           Int    @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   userId       String
   areaPincode  Int
   addressLine1 String
-  addressLine2 String
-  landmark     String
+  addressLine2 String?
+  city         String
   state        String
   country      String
-  user         User   @relation(fields: [userId], references: [id])
+  user         User    @relation(fields: [userId], references: [id])
 }
 
 // TICKET MODEL
 model Ticket {
-  id                 String               @id @default(uuid())
-  ticketNumber       Int                  @default(autoincrement())
-  userId             String
-  eventId            Int
-  price              Float
-  seatNumber         String?
-  userEkycRequired   Boolean              @default(false)
-  uniqueUserIdentity String?              @unique
-  createdAt          DateTime             @default(now())
-  status             String               @default("Active") // New Field
-  canceledAt         DateTime? // New Field
-  cancellation       TicketCancellations? // New Relation
-  qrCode             String?
-  user               User                 @relation(fields: [userId], references: [id])
-  event              Event                @relation(fields: [eventId], references: [id])
+  id                String               @id @default(uuid())
+  ticketNumber      Int                  @default(autoincrement())
+  userId            String
+  eventId           Int
+  price             Float
+  seatNumber        String?
+  userEkycRequired  Boolean              @default(false)
+  qrCode            String?
+  createdAt         DateTime             @default(now())
+  status            String               @default("Active") // Active, Canceled, Listed, Resold
+  resoldAt          DateTime?
+  canceledAt        DateTime?
+  cancellation      TicketCancellations?
+  user              User                 @relation(fields: [userId], references: [id])
+  event             Event                @relation(fields: [eventId], references: [id])
+  ResaleListing     ResaleListing?
+  ResaleTransaction ResaleTransaction?
 
   @@index([userId])
   @@index([eventId])
 }
 
+// RESALELISTING MODEL
+model ResaleListing {
+  id           String   @id @default(uuid())
+  ticketId     String   @unique
+  ticketNumber Int // Ticket number of the original ticket
+  eventId      Int
+  sellerId     String   @db.VarChar(255) // Who is selling
+  resalePrice  Float
+  seatNumber   String?
+  listedAt     DateTime @default(now())
+  status       String   @default("listed") // listed, sold, canceled, expired, unlisted
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+  event        Event    @relation(fields: [eventId], references: [id])
+  user         User     @relation(fields: [sellerId], references: [id])
+}
+
+// RESALETRASACTION MODEL //
+model ResaleTransaction {
+  id          String   @id @default(uuid())
+  ticketId    String   @unique // Original ticket id
+  eventId     Int
+  buyerId     String // Who is buying
+  sellerId    String // Who is selling
+  resalePrice Float
+  seatNumber  String?
+  purchasedAt DateTime @default(now())
+  status      String   @default("purchased") // purchased, canceled, expired
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  event       Event    @relation(fields: [eventId], references: [id])
+  buyer       User     @relation(fields: [buyerId], references: [id], name: "buyerRelation")
+  seller      User     @relation(fields: [sellerId], references: [id], name: "sellerRelation")
+  User        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+}
+
+// TICKETCANCELLATION MODEL
 model TicketCancellations {
   id             String   @id @default(uuid())
   ticketId       String   @unique
@@ -230,7 +277,8 @@ model Event {
   id                  Int                   @id @default(autoincrement())
   title               String
   description         String?
-  poster              String?
+  posterImage         String?
+  bannerImage         String?
   artist              String?
   date                DateTime
   startTime           DateTime
@@ -248,4 +296,6 @@ model Event {
   venueInformation    VenueInformation      @relation(fields: [venueId], references: [id])
   ticket              Ticket[] // Relation to tickets sold for this event
   TicketCancellations TicketCancellations[]
+  ResaleListing       ResaleListing[]
+  ResaleTransaction   ResaleTransaction[]
 }

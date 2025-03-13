@@ -13,7 +13,7 @@ export default function Providers({ children }) {
           <div className="flex flex-col items-center justify-center h-screen">
             {/* SVG Spinner */}
             <svg
-              className="animate-spin h-10 w-10 text-teal-600 mb-4"
+              className="animate-spin h-10 w-10 backdrop-blur-sm border bg-emerald-300/10 border-emerald-500/20  mb-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"

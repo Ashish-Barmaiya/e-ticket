@@ -37,15 +37,6 @@ class TicketController {
     // Fetching event details to get the price and ticketsAvailable
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      select: {
-        title: true,
-        date: true,
-        startTime: true,
-        price: true,
-        ticketsAvailable: true,
-        seatsAvailable: true,
-        venueInformation: true,
-      },
     });
 
     if (!event) {
@@ -70,41 +61,41 @@ class TicketController {
       });
     }
 
+    let assignedSeatNumbers = [];
+
+    if (!UserEnteredSeatNumbers || UserEnteredSeatNumbers.length === 0) {
+      // Assign seats in ascending order
+      assignedSeatNumbers = event.seatsAvailable.slice(0, totalTickets);
+    } else {
+      // Validate provided seat numbers
+      const invalidSeats = UserEnteredSeatNumbers.filter(
+        (seat) => !event.seatsAvailable.includes(seat),
+      );
+
+      if (invalidSeats.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `The following seats are not available: ${invalidSeats.join(
+            ", ",
+          )}`,
+        });
+      }
+      assignedSeatNumbers = UserEnteredSeatNumbers;
+    }
+
+    // Check eKyc conditions
+    if (event.userEkycRequired === true && user.eKyc === false) {
+      console.log("User eKyc is not completed");
+      return res.status(403).send({
+        success: false,
+        message:
+          "User e-Kyc is mandatory to buy tickets of this event. Complete your Aadhaar e-Kyc",
+      });
+    }
+
     try {
       result = await prisma.$transaction(async (prisma) => {
-        let assignedSeatNumbers = [];
-
-        if (!UserEnteredSeatNumbers || UserEnteredSeatNumbers.length === 0) {
-          // Assign seats in ascending order
-          assignedSeatNumbers = event.seatsAvailable.slice(0, totalTickets);
-        } else {
-          // Validate provided seat numbers
-          const invalidSeats = UserEnteredSeatNumbers.filter(
-            (seat) => !event.seatsAvailable.includes(seat),
-          );
-
-          if (invalidSeats.length > 0) {
-            return res.status(400).json({
-              success: false,
-              message: `The following seats are not available: ${invalidSeats.join(
-                ", ",
-              )}`,
-            });
-          }
-          assignedSeatNumbers = UserEnteredSeatNumbers;
-        }
-
-        // Check eKyc conditions
         /* Condition 1 */
-        if (event.userEkycRequired === true && user.eKyc === false) {
-          console.log("User eKyc is not completed");
-          return res.status(403).send({
-            success: false,
-            message:
-              "User e-Kyc is mandatory to buy tickets of this event. Complete your Aadhaar e-Kyc",
-          });
-        }
-        /* Condition 2 */
         if (event.userEkycRequired === true && user.eKyc === true) {
           // Create the ticket
           let createdTickets = [];
@@ -127,7 +118,6 @@ class TicketController {
               price: event.price,
               seatNumber: seatNumber,
               userEkycRequired: true,
-              uniqueUserIdentity: user.uniqueUserIdentity,
             };
 
             // Generate QR Code for ticket
@@ -160,7 +150,7 @@ class TicketController {
 
           return createdTickets;
         } else {
-          /* Condition 3 - user ekyc not required by the event */
+          /* Condition 2 - user ekyc not required by the event */
           // Create tickets
           let createdTickets = [];
           for (let i = 0; i < totalTickets; i++) {

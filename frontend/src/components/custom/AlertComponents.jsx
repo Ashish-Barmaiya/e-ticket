@@ -106,4 +106,41 @@ function EventCreatedAlert() {
   );
 }
 
-export { ErrorAlert, SignInAlert, TicketCancelledAlert, EventCreatedAlert };
+function TicketBookedAlert({ isTicketSentViaEmail }) {
+  const router = useRouter();
+
+  return (
+    <AlertDialog open>
+      <AlertDialogContent className="border-4 border-teal-600 rounded-lg">
+        <AlertDialogHeader className="px-3">
+          <AlertDialogTitle className="text-2xl tracking-wider">
+            Ticket Booked Successfully.
+          </AlertDialogTitle>
+          {isTicketSentViaEmail ? (
+            <AlertDialogDescription className="text-md tracking-wide">
+              Ticket sent to your email successfully.
+            </AlertDialogDescription>
+          ) : (
+            <AlertDialogDescription className="text-md tracking-wide">
+              <span className="text-red-600">Failed</span> to send ticket to
+              your email.
+            </AlertDialogDescription>
+          )}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => router.push("/")}>
+            <p className="tracking-wider">Close</p>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export {
+  ErrorAlert,
+  SignInAlert,
+  TicketCancelledAlert,
+  EventCreatedAlert,
+  TicketBookedAlert,
+};

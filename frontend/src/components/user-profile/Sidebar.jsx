@@ -58,6 +58,11 @@ export default function UserSidebar() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        style: {
+          background: "#121212",
+          color: "#fff",
+          fontSize: "16px",
+        },
       });
     } else {
       // Optionally handle error state
@@ -69,6 +74,11 @@ export default function UserSidebar() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        style: {
+          background: "#121212",
+          color: "#fff",
+          fontSize: "16px",
+        },
       });
     }
   };
@@ -108,7 +118,7 @@ export default function UserSidebar() {
 
   return (
     // Use fixed positioning with full viewport height.
-    <div className="fixed top-16 left-0 w-64 h-screen border-r-2 border-teal-600 p-4 bg-black/85 text-white/90 ">
+    <div className="fixed top-16 left-0 w-64 h-screen border-r-2 border-teal-600 p-4 bg-black/90 text-white/90 ">
       <div className="space-y-4 pt-2 px-6">
         <div className="mb-6">
           <h2 className="text-xl px-0">

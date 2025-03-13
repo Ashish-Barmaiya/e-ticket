@@ -27,10 +27,11 @@ const CitySearch = () => {
       {/* Button to open dialog */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center tracking-wider font-extralight rounded-md hover:text-teal-500"
+        className="flex items-center text-white tracking-wider font-extralight rounded-md hover:text-teal-500"
       >
-        Select Your City
-        <MapPin className="w-10 h-5  hover:text-teal-500" /> {/* Map Icon */}
+        Select City
+        <MapPin className="w-10 h-5 text-white hover:text-teal-500" />{" "}
+        {/* Map Icon */}
       </button>
 
       {/* Custom Dialog */}

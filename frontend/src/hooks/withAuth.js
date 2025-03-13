@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 const withAuth = (WrappedComponent) => {
   const AuthWrapper = (props) => {
-    const user = useAppSelector((state) => state.user.user); // Adjust the state path if needed
+    const user = useAppSelector((state) => state.user.user);
     const router = useRouter();
 
     useEffect(() => {
@@ -17,7 +17,6 @@ const withAuth = (WrappedComponent) => {
       }
     }, [user, router]);
 
-    // If user data is still loading, show a loading state
     if (!user) return <p>Loading...</p>;
 
     return <WrappedComponent {...props} />;

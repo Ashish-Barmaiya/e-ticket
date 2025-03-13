@@ -39,18 +39,18 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed px-10 top-0 left-0 w-full bg-black/85 z-40 py-1 font-sans h-16">
+      <nav className="fixed px-10 top-0 left-0 w-full bg-black/90 z-40 py-1 font-sans h-16">
         <div className="container mx-auto flex justify-between items-center">
           {/* Logo and Search Bar Container */}
           <div className="flex content-start items-center space-x-2">
             {/* Logo */}
-            <div className="bg-gradient-to-r from-yellow-300 to-amber-500 bg-clip-text text-transparent text-4xl tracking-wider font-light">
+            <div className="bg-gradient-to-r from-yellow-300 to-amber-500 bg-clip-text text-transparent text-4xl tracking-wider font-light ">
               <Link href="/">
                 <h1>ticketo</h1>
               </Link>
             </div>
             {/* Search Bar */}
-            <div className="px-2">
+            <div className="pl-4">
               <SearchBar onChange={(e) => setQuery(e.target.value)} />
             </div>
           </div>
@@ -82,22 +82,22 @@ const Navbar = () => {
             } bg-opacity-0 py-3 px-5 rounded-full`}
           >
             <Link href="/events">
-              <button className="text-white font-thin tracking-widest hover:text-teal-300 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
+              <button className="text-white font-thin tracking-widest relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-amber-500 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Events
               </button>
             </Link>
             <Link href="/host">
-              <button className="text-white font-thin tracking-widest hover:text-teal-300 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
+              <button className="text-white font-thin tracking-widest relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-amber-500 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Host an Event
               </button>
             </Link>
             <Link href="/api/resell-tickets">
-              <button className="text-white font-thin tracking-widest hover:text-teal-300 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
+              <button className="text-white font-thin tracking-widest relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-amber-500 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 Sell Tickets
               </button>
             </Link>
             <Link href="/api/ekyc">
-              <button className="text-white font-thin tracking-widest hover:text-teal-300 relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
+              <button className="text-white font-thin tracking-widest relative after:content-[''] after:absolute after:left-0 after:bottom-[-2px] after:w-0 after:h-[2px] after:bg-amber-500 after:transition-all after:duration-300 hover:after:w-full text-lg px-1">
                 E-Kyc
               </button>
             </Link>
@@ -112,7 +112,7 @@ const Navbar = () => {
             ) : (
               <Button
                 variant="outline"
-                className="text-md bg-opacity-0 text-white hover:text-teal-300 hover:bg-black/30 transition duration-300"
+                className="text-md bg-opacity-0 text-white hover:text-amber-300 hover:bg-black/30 transition duration-300"
                 onClick={() => setActiveDialog("signIn")} // Open sign-in dialog
               >
                 Sign In

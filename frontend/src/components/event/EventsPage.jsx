@@ -3,6 +3,7 @@ import React from "react";
 import SearchBar from "../SearchBar";
 import CitySearch from "../CitySearch";
 import BrowseCategoriesDropdown from "../BrowseCategoriesDropdown";
+import EventPageImageHero from "./EventPageImageHero";
 
 const EventsPageComponent = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +16,8 @@ const EventsPageComponent = () => {
   return (
     <div>
       {/* Hero banner */}
-      <div className="container mx-auto min-h-48">
+      <EventPageImageHero />
+      {/* <div className="container mx-auto min-h-48">
         <h1 className="text-4xl text-center py-4 font-light tracking-wide">
           <span>
             Find the Best{" "}
@@ -25,14 +27,7 @@ const EventsPageComponent = () => {
             Near you
           </span>
         </h1>
-        <div className="grid gap-2">
-          <div className="flex justify-center gap-2">
-            <CitySearch />
-            <SearchBar onSearch={handleSearch} />
-            <BrowseCategoriesDropdown />
-          </div>
-        </div>
-      </div>
+      </div> */}
     </div>
   );
 };

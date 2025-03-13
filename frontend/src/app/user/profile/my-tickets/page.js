@@ -32,8 +32,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import downloadTicketPDF from "@/utils/downloadTicketPdf";
 import { ArrowDownToLine } from "lucide-react";
+import withAuth from "@/hooks/withAuth";
 
-export default function MyTickets() {
+function MyTickets() {
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -145,14 +146,6 @@ export default function MyTickets() {
         <Head>
           <title>No Tickets Found</title>
         </Head>
-        {/* <div className="pb-4 font text-5xl tracking-wider text-black/85 mb-4">
-          <h1>
-            Your{" "}
-            <span className="text-6xl text-teal-600 tracking-tight">
-              Tickets
-            </span>{" "}
-          </h1>
-        </div> */}
         <div className="flex flex-col items-center justify-center h-screen text-center transform -translate-y-10">
           <h2 className="flex items-baseline text-3xl tracking-wide">
             No&nbsp;<span className="text-teal-600 text-4xl">Tickets</span>
@@ -241,7 +234,7 @@ export default function MyTickets() {
 
         <ScrollArea className="h-screen rounded-md  py-2">
           <ul className="px-10 grid grid-cols-3 gap-20">
-            {tickets.map((ticket) => (
+            {tickets.toReversed().map((ticket) => (
               <li key={ticket.id}>
                 <div>
                   <Drawer>
@@ -272,8 +265,8 @@ export default function MyTickets() {
                             {/* Event Details */}
                             <div className="grid gap-1.5 text-md text-white/70 tracking-widest">
                               <img
-                                src="/Music_Fest.jpg"
-                                alt={selectedTicket.event.title}
+                                src={selectedTicket?.event?.bannerImage}
+                                alt="Event_Banner_Image"
                                 className="w-60 h-60 rounded-md object-cover"
                               />
                               <h2 className="text-2xl">
@@ -388,12 +381,17 @@ export default function MyTickets() {
                                   </DialogContent>
                                 </Dialog>
 
-                                <Button
-                                  variant="outline"
-                                  className="text-black  border-teal-500 hover:bg-teal-700 hover:text-white"
+                                <Link
+                                  href={`/user/profile/my-tickets/resell/${selectedTicket?.id}`}
+                                  passHref
                                 >
-                                  Resell Ticket
-                                </Button>
+                                  <Button
+                                    variant="outline"
+                                    className="text-black  border-teal-500 hover:bg-teal-700 hover:text-white"
+                                  >
+                                    Resell Ticket
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
                           </div>
@@ -422,3 +420,5 @@ export default function MyTickets() {
     </div>
   );
 }
+
+export default withAuth(MyTickets);

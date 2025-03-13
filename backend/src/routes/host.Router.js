@@ -19,6 +19,7 @@ import {
 import { hostLoginAuth } from "../middlewares/auth.middleware.js";
 import { newEvent } from "../controllers/events.Controller.js";
 import { PrismaClient } from "@prisma/client";
+import { uploadImg } from "../middlewares/multer.Middleware.js";
 
 // const __dirname = dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
@@ -70,7 +71,10 @@ router.post("/dashboard/venue/add-venue", hostLoginAuth, addVenue);
 router.post(
   "/dashboard/list-new-event",
   hostLoginAuth,
-  validate(newEventValidator),
+  uploadImg.fields([
+    { name: "posterImage", maxCount: 1 },
+    { name: "bannerImage", maxCount: 1 },
+  ]),
   newEvent,
 );
 

@@ -16,6 +16,8 @@ import {
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { setUser, setSignInOpen } from "../redux/userSlice";
 import { toast } from "react-toastify";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChevronDown } from "lucide-react";
 
 export default function UserProfileSheet() {
   const dispatch = useAppDispatch();
@@ -59,6 +61,11 @@ export default function UserProfileSheet() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        style: {
+          background: "#121212",
+          color: "#fff",
+          fontSize: "16px",
+        },
       });
     } else {
       setIsError(true);
@@ -71,6 +78,11 @@ export default function UserProfileSheet() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        style: {
+          background: "#121212",
+          color: "#fff",
+          fontSize: "16px",
+        },
       });
     }
   };
@@ -79,19 +91,24 @@ export default function UserProfileSheet() {
     <Sheet>
       {/* The trigger button appears in the navbar */}
       <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          className="text-lg  tracking-wider bg-opacity-0 border-gray-600 text-teal-400  hover:bg-white hover:border-teal-500 hover:border transition duration-300"
-        >
-          Profile
-        </Button>
+        <button className="flex items-center space-x-2">
+          <Avatar className="w-6 h-6">
+            <AvatarImage src={user.user.profilePicture} />
+            <AvatarFallback className="bg-teal-200">
+              {user.user.fullName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <ChevronDown className="w-6 h-6 text-white/90" />
+        </button>
       </SheetTrigger>
 
       <SheetContent className="bg-gray-50 border-teal-600 border-4 rounded-lg">
         <SheetHeader>
           {user ? (
             <>
-              <SheetTitle className="px-1">{user.user.fullName}</SheetTitle>
+              <SheetTitle className="px-1 tracking-tight text-xl">
+                {user.user.fullName}
+              </SheetTitle>
               {/* Override the default element by using asChild */}
               <SheetDescription asChild>
                 <div>

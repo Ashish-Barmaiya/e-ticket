@@ -15,6 +15,7 @@ import { generateHash } from "../utils/generateHash.js";
 import { redisClient } from "../../app.js";
 import { sendOtpViaPhoneNumber, sendOtpViaEmail } from "../utils/otp.js";
 import { decryptData, encryptData } from "../utils/encrypt.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 env.config();
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
@@ -244,6 +245,49 @@ const loginUser = asyncHandler(async (req, res, next) => {
     });
   })(req, res, next);
 });
+
+// USER PROFILE PICTURE UPLOAD //
+const uploadUserProfilePicture = async (req, res) => {
+  try {
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (!user) {
+      console.log("User not found during e-kyc");
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Ensure a file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    const localFilePath = req.file.path;
+    const uploadResponse = await uploadOnCloudinary(localFilePath);
+
+    if (uploadResponse) {
+      const imageUrl = uploadResponse.secure_url;
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { profilePicture: imageUrl },
+      });
+
+      return res
+        .status(200)
+        .json({ message: "Upload successful", data: uploadResponse });
+    } else {
+      return res.status(500).json({ message: "Cloudinary upload failed." });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
+  }
+};
 
 // UPDATE USER INFO //
 const updateUserInfo = async (req, res) => {
@@ -888,6 +932,131 @@ const verifyUserPhoneNumberOtp = async (req, res) => {
   }
 };
 
+// Get ticket for listing
+const GetTicketForListingForResale = async (req, res) => {
+  console.log("req.params:", req.params);
+  const { ticketId } = req.params;
+  console.log("Extracted ticketId:", ticketId);
+
+  try {
+    // Get user
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (!user) {
+      console.log("User not found while listing ticket for resell");
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Get ticket
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      console.log("Ticket data not found for requested ticeket");
+      return res
+        .status(404)
+        .json({ success: false, message: "Ticket data not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Ticket fetched successfully",
+      ticket,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// USER LIST TICKET FOR RESELL //
+const listicketForResell = async (req, res) => {
+  const { ticketId } = req.params;
+  const resalePrice = parseFloat(req.body.resalePrice);
+
+  try {
+    // Get user
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (!user) {
+      console.log("User not found while listing ticket for resell");
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Get ticket
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      console.log("Ticket data not found for requested ticeket");
+      return res
+        .status(404)
+        .json({ success: false, message: "Ticket data not found" });
+    }
+
+    // Check event time (later)
+
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update ticket
+      const updatedTicket = await prisma.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status: "Listed for resale",
+        },
+      });
+
+      // Create new record in ResaleListing
+      const resaleListing = await prisma.resaleListing.create({
+        data: {
+          ticketId: ticketId,
+          ticketNumber: ticket.ticketNumber,
+          eventId: ticket.eventId,
+          sellerId: user.id,
+          resalePrice: resalePrice,
+          seatNumber: ticket.seatNumber,
+          status: "Listed for resale",
+        },
+      });
+
+      if (updatedTicket && resaleListing) {
+        return { updatedTicket, resaleListing };
+      } else {
+        return null;
+      }
+    });
+
+    if (!result) {
+      console.log("Error listing ticket for resale");
+      return res
+        .status(500)
+        .json({ success: false, message: "Error listing ticket for resale" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Successfully listed ticket for resale",
+      result,
+    });
+  } catch (error) {
+    console.error("Error listing ticket for resale: ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
 export {
   initializeUserRegistrationAndSendEmailOtp,
   verifyUserEmailAndCompleteRegistration,
@@ -900,4 +1069,7 @@ export {
   userVerifyOtp,
   sendOtpToUserPhoneNumber,
   verifyUserPhoneNumberOtp,
+  uploadUserProfilePicture,
+  GetTicketForListingForResale,
+  listicketForResell,
 };
